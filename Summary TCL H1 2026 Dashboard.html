@@ -316,6 +316,13 @@ table.dt tbody tr:hover td:first-child{background:#f6f9ff}
 .cc-foot{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mut);margin-top:9px;font-weight:600}
 .cc-foot .dot{width:9px;height:9px;border-radius:50%}
 
+/* ===== Language toggle ===== */
+.langtog{display:inline-flex;background:var(--line2);border:1px solid var(--line);border-radius:30px;padding:2px;gap:2px}
+.langbtn{border:0;background:transparent;color:var(--mut);font-size:11.5px;font-weight:800;letter-spacing:.04em;padding:5px 12px;border-radius:30px;cursor:pointer;transition:.15s}
+.langbtn:hover{color:var(--ink)}
+.langbtn.on{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(217,56,48,.32)}
+@media(max-width:680px){.langbtn{padding:5px 10px}}
+
 @media(max-width:1024px){
   .side{transform:translateX(-100%)} .side.open{transform:none}
   .main{margin-left:0} .burger{display:block}
@@ -356,6 +363,10 @@ table.dt tbody tr:hover td:first-child{background:#f6f9ff}
         <div class="crumb" id="pgCrumb">ภาพรวมผลงาน KOL ครึ่งปีแรก</div>
       </div>
       <div class="sp"></div>
+      <div class="langtog" role="group" aria-label="Language">
+        <button class="langbtn on" data-lang="th" onclick="setLang('th')">TH</button>
+        <button class="langbtn" data-lang="en" onclick="setLang('en')">EN</button>
+      </div>
       <div class="pill" id="pillA">2 Campaigns</div>
       <div class="pill cool" id="pillB">46 Active Pieces</div>
     </div>
@@ -367,6 +378,16 @@ table.dt tbody tr:hover td:first-child{background:#f6f9ff}
 <script>
 /* ============ TCL H1 2026 KOL DASHBOARD ============ */
 const D = JSON.parse(document.getElementById('DATA').textContent);
+
+/* ---------- i18n ---------- */
+let LANG = 'th';
+let CUR_MENU = 'exec', CUR_ANCHOR = null;
+function t(th, en){ return LANG==='en' ? (en!==undefined?en:th) : th; }
+function setLang(l){ if(l===LANG) return; LANG=l;
+  document.querySelectorAll('.langbtn').forEach(b=>b.classList.toggle('on', b.dataset.lang===l));
+  document.documentElement.lang = l;
+  buildNav(); showMenu(CUR_MENU, CUR_ANCHOR);
+}
 
 /* ---------- formatters ---------- */
 const NF  = n => Math.round(n||0).toLocaleString('en-US');
@@ -399,7 +420,7 @@ const ADS_SPEND={cool:244000, npd:100000};
 const BM={cpm:15, cpv:0.05, cpe:0.5, cpr:25};
 function costPer(spend,a){ return {cpm:spend/a.imp*1000, cpv:spend/a.view, cpe:spend/a.eng, cpr:spend/a.reach*1000}; }
 function bht(v,dp){ return '฿'+v.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp}); }
-function vBadge(val,bm){ const d=(val-bm)/bm*100, good=val<=bm; return `<span class="cc-badge ${good?'cc-g':'cc-r'}">${good?'▼ ถูกกว่า BM':'▲ แพงกว่า BM'} ${Math.abs(d).toFixed(0)}%</span>`; }
+function vBadge(val,bm){ const d=(val-bm)/bm*100, good=val<=bm; return `<span class="cc-badge ${good?'cc-g':'cc-r'}">${good?t('▼ ถูกกว่า BM','▼ below BM'):t('▲ แพงกว่า BM','▲ above BM')} ${Math.abs(d).toFixed(0)}%</span>`; }
 function cBar(val,bm){ const r=Math.min(val/bm,1.5), w=(r/1.5*100).toFixed(1), good=val<=bm; return `<div class="cc-track" title="Benchmark = เส้นกลาง"><div class="cc-bm"></div><div class="cc-fill ${good?'cc-fg':'cc-fr'}" style="width:${w}%"></div></div>`; }
 function costCard(code,name,bmv,vC,vN,dp){ return `<div class="costcard">
   <div class="cc-head"><div><span class="cc-code">${code}</span> <span class="cc-name">${name}</span></div><div class="cc-bm-l">Benchmark<br><b>${bht(bmv,dp)}</b></div></div>
@@ -409,7 +430,7 @@ function costCard(code,name,bmv,vC,vN,dp){ return `<div class="costcard">
 function costCard1(code,name,bmv,val,dp,dotCls,label){ return `<div class="costcard">
   <div class="cc-head"><div><span class="cc-code">${code}</span> <span class="cc-name">${name}</span></div><div class="cc-bm-l">Benchmark<br><b>${bht(bmv,dp)}</b></div></div>
   <div class="cc-row1"><div class="cc-bigval">${bht(val,dp)}</div>${vBadge(val,bmv)}</div>${cBar(val,bmv)}
-  <div class="cc-foot"><span class="dot ${dotCls}"></span>${label} · เทียบ Benchmark</div>
+  <div class="cc-foot"><span class="dot ${dotCls}"></span>${label} · ${t('เทียบ Benchmark','vs Benchmark')}</div>
 </div>`; }
 
 /* ---- GLOBAL: show % on every pie / doughnut slice ---- */
@@ -510,20 +531,21 @@ function audience(rows){
 
 /* ============ NAV ============ */
 const SUBS = {
-  cool:[['p-overview','Product · ภาพรวมแคมเปญ'],['p-kpi','KPI vs Actual'],['p-cost','Cost per Metric · Benchmark'],['p-product','โปรดักส์ · ผลงานแยกตามมิติ'],['p-tier','Performance × Tier KOL'],['p-eng','Top KOL · Engagement'],['p-view','Top KOL · View'],['p-aud','โปรไฟล์ผู้ชม เพศ/อายุ'],['p-lineup','KOL Line-up · รายคน'],['p-detail','Detail · ตารางวิเคราะห์'],['p-director','Director Analysis'],['p-take','Key Takeaway · สิ้นปีแรก'],['p-content','Content / Ads']]
+  cool:[['p-overview','Product · ภาพรวมแคมเปญ','Product · Campaign Overview'],['p-kpi','KPI vs Actual','KPI vs Actual'],['p-cost','Cost per Metric · Benchmark','Cost per Metric · Benchmark'],['p-product','โปรดักส์ · ผลงานแยกตามมิติ','Products · Performance by Dimension'],['p-tier','Performance × Tier KOL','Performance × KOL Tier'],['p-eng','Top KOL · Engagement','Top KOL · Engagement'],['p-view','Top KOL · View','Top KOL · View'],['p-aud','โปรไฟล์ผู้ชม เพศ/อายุ','Audience Profile · Gender/Age'],['p-lineup','KOL Line-up · รายคน','KOL Line-up · Individual'],['p-detail','Detail · ตารางวิเคราะห์','Detail · Analysis Table'],['p-director','Director Analysis','Director Analysis'],['p-take','Key Takeaway · สิ้นปีแรก','Key Takeaway · Mid-Year'],['p-content','Content / Ads','Content / Ads']]
 };
 const MENUS=[
-  {id:'exec', ix:'1', t:'H1 2026 · Executive Summary', c:'สรุปผล KOL ครึ่งปีแรก', subs:[['e-summary','สรุปผลแคมเปญ KOL'],['e-flow','Work Flow & งานค้าง'],['e-kpi','KPI เก่า/ใหม่/Actual'],['e-cost','Cost per Metric · Benchmark']]},
-  {id:'mandala', ix:'2', t:'Mandala', c:'Brand Storytelling & Market Analysis', subs:[['m-story','Storytelling'],['m-market','วิเคราะห์ตลาด']]},
-  {id:'cool', ix:'3', t:'แคมเปญ Cool', c:'TCL-Cool Campaign · Air Conditioner', subs:SUBS.cool},
-  {id:'npd', ix:'4', t:'TCL New Product Launch 2026', c:'NPD Launch KOL · Event', subs:SUBS.cool},
+  {id:'exec', ix:'1', t:'H1 2026 · Executive Summary', te:'H1 2026 · Executive Summary', c:'สรุปผล KOL ครึ่งปีแรก', ce:'KOL Mid-Year Performance Summary', subs:[['e-summary','สรุปผลแคมเปญ KOL','KOL Campaign Summary'],['e-flow','Work Flow & งานค้าง','Work Flow & Pending'],['e-kpi','KPI เก่า/ใหม่/Actual','KPI Original/Revised/Actual'],['e-cost','Cost per Metric · Benchmark','Cost per Metric · Benchmark']]},
+  {id:'mandala', ix:'2', t:'Mandala', te:'Mandala', c:'Brand Storytelling & Market Analysis', ce:'Brand Storytelling & Market Analysis', subs:[['m-story','Storytelling','Storytelling'],['m-market','วิเคราะห์ตลาด','Market Analysis']]},
+  {id:'cool', ix:'3', t:'แคมเปญ Cool', te:'Cool Campaign', c:'TCL-Cool Campaign · Air Conditioner', ce:'TCL-Cool Campaign · Air Conditioner', subs:SUBS.cool},
+  {id:'npd', ix:'4', t:'TCL New Product Launch 2026', te:'TCL New Product Launch 2026', c:'NPD Launch KOL · Event', ce:'NPD Launch KOL · Event', subs:SUBS.cool},
 ];
 function buildNav(){
   const nav=document.getElementById('nav');
+  nav.innerHTML='';
   MENUS.forEach((mn,i)=>{
     const g=document.createElement('div'); g.className='nav-group'+(i===0?' open':''); g.dataset.menu=mn.id;
-    g.innerHTML=`<button class="nav-top${i===0?' active':''}"><span class="ix">${mn.ix}</span><span class="txt">${mn.t}</span><span class="chev">▶</span></button>
-      <div class="nav-sub">${mn.subs.map(s=>`<a data-menu="${mn.id}" data-anchor="${s[0]}">${s[1]}</a>`).join('')}</div>`;
+    g.innerHTML=`<button class="nav-top${i===0?' active':''}"><span class="ix">${mn.ix}</span><span class="txt">${t(mn.t,mn.te)}</span><span class="chev">▶</span></button>
+      <div class="nav-sub">${mn.subs.map(s=>`<a data-menu="${mn.id}" data-anchor="${s[0]}">${t(s[1],s[2])}</a>`).join('')}</div>`;
     g.querySelector('.nav-top').onclick=()=>{ const wasOpen=g.classList.contains('open'); document.querySelectorAll('.nav-group').forEach(x=>x.classList.remove('open')); if(!wasOpen)g.classList.add('open'); else g.classList.add('open'); showMenu(mn.id); };
     g.querySelectorAll('.nav-sub a').forEach(a=>a.onclick=(e)=>{e.stopPropagation(); showMenu(mn.id,a.dataset.anchor);});
     nav.appendChild(g);
@@ -531,9 +553,13 @@ function buildNav(){
 }
 function showMenu(id,anchor){
   destroyCharts();
+  CUR_MENU=id; CUR_ANCHOR=anchor||null;
   const mn=MENUS.find(m=>m.id===id);
-  document.getElementById('pgTitle').textContent=mn.t;
-  document.getElementById('pgCrumb').textContent=mn.c;
+  document.getElementById('pgTitle').textContent=t(mn.t,mn.te);
+  document.getElementById('pgCrumb').textContent=t(mn.c,mn.ce);
+  { const pa=document.getElementById('pillA'), pb=document.getElementById('pillB');
+    if(pa) pa.textContent=t('2 แคมเปญ','2 Campaigns');
+    if(pb) pb.textContent=t('46 ชิ้นงาน Active','46 Active Pieces'); }
   document.querySelectorAll('.nav-top').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.nav-group').forEach(g=>{ g.classList.toggle('open',g.dataset.menu===id); if(g.dataset.menu===id)g.querySelector('.nav-top').classList.add('active'); });
   const c=document.getElementById('content'); c.innerHTML='';
@@ -564,7 +590,7 @@ RENDER.exec = (pg)=>{
 
   let h='';
   /* ---- e-summary ---- */
-  h+=sec('e-summary','📊','สรุปผลแคมเปญ KOL · สิ้นปีแรก (H1 2026)','ภาพรวม 2 แคมเปญหลัก — Cool Campaign และ TCL New Product Launch','');
+  h+=sec('e-summary','📊',t('สรุปผลแคมเปญ KOL · สิ้นปีแรก (H1 2026)','KOL Campaign Summary · Mid-Year (H1 2026)'),t('ภาพรวม 2 แคมเปญหลัก — Cool Campaign และ TCL New Product Launch','Overview of 2 core campaigns — Cool Campaign and TCL New Product Launch'),'');
   const totKol=(D.kpi_cool.actual.kol||0)+(D.kpi_npd.actual.kol||0);
   h+=`<div class="cards" style="margin-bottom:14px">
     <div class="card c-purple"><div class="k-val">2</div><div class="k-lab">แคมเปญ H1</div></div>
@@ -592,7 +618,7 @@ RENDER.exec = (pg)=>{
   h+='</section>';
 
   /* ---- e-flow ---- */
-  h+=sec('e-flow','🔄','Work Flow & งานค้าง','สถานะการส่งมอบชิ้นงาน KOL ณ สิ้นครึ่งปีแรก','warn');
+  h+=sec('e-flow','🔄',t('Work Flow & งานค้าง','Work Flow & Pending'),t('สถานะการส่งมอบชิ้นงาน KOL ณ สิ้นครึ่งปีแรก','KOL deliverable status as of mid-year'),'warn');
   const flowStages=[
     ['Briefed / Onboard', D.cool.length+D.npd.length, 'accent'],
     ['Content Produced', coolD.length+npdD.length, 'cool'],
@@ -615,7 +641,7 @@ RENDER.exec = (pg)=>{
   h+='</section>';
 
   /* ---- e-kpi ---- */
-  h+=sec('e-kpi','🎯','KPI · เก่า / ใหม่ / Actual','KPI เก่าตั้งบนจำนวน KOL เดิม → ปรับเป็น KPI ใหม่ และเทียบ Actual','good');
+  h+=sec('e-kpi','🎯',t('KPI · เก่า / ใหม่ / Actual','KPI · Original / Revised / Actual'),t('KPI เก่าตั้งบนจำนวน KOL เดิม → ปรับเป็น KPI ใหม่ และเทียบ Actual','Original KPI set on initial KOL count → revised KPI vs Actual'),'good');
   /* Cool block — image1 style: table (left) + KPI ใหม่ vs Actual bar (right) */
   h+=`<div class="kpiblock"><span class="kpi-tag kt-cool">COOL Campaign</span>
     <div class="g2 kpi2col">
@@ -641,26 +667,26 @@ RENDER.exec = (pg)=>{
   h+='</section>';
 
   /* ---- e-cost · Cost per Metric vs Benchmark ---- */
-  h+=sec('e-cost','💰','Cost per Metric · ต้นทุนต่อผลลัพธ์ (by Campaign)','อิงงบยิงแอดต่อแคมเปญ — ไม่แสดงตัวเลขงบ · เทียบ Benchmark อุตสาหกรรม TikTok KOL · TH/SEA · เครื่องใช้ไฟฟ้าขนาดเล็ก','good');
+  h+=sec('e-cost','💰',t('Cost per Metric · ต้นทุนต่อผลลัพธ์ (by Campaign)','Cost per Metric · Cost per Outcome (by Campaign)'),t('อิงงบยิงแอดต่อแคมเปญ — ไม่แสดงตัวเลขงบ · เทียบ Benchmark อุตสาหกรรม TikTok KOL · TH/SEA · เครื่องใช้ไฟฟ้าขนาดเล็ก','Based on per-campaign ad spend — budget not shown · vs industry benchmark TikTok KOL · TH/SEA · small home appliances'),'good');
   const cpC=costPer(ADS_SPEND.cool,aC), cpN=costPer(ADS_SPEND.npd,aN);
   h+=`<div class="costgrid">`;
-  h+=costCard('CPM','ต่อ 1,000 Impression',BM.cpm,cpC.cpm,cpN.cpm,2);
-  h+=costCard('CPV','ต่อ 1 View',BM.cpv,cpC.cpv,cpN.cpv,3);
-  h+=costCard('CPE','ต่อ 1 Engagement',BM.cpe,cpC.cpe,cpN.cpe,3);
-  h+=costCard('CPR','ต่อ 1,000 Reach',BM.cpr,cpC.cpr,cpN.cpr,2);
+  h+=costCard('CPM',t('ต่อ 1,000 Impression','per 1,000 Impressions'),BM.cpm,cpC.cpm,cpN.cpm,2);
+  h+=costCard('CPV',t('ต่อ 1 View','per View'),BM.cpv,cpC.cpv,cpN.cpv,3);
+  h+=costCard('CPE',t('ต่อ 1 Engagement','per Engagement'),BM.cpe,cpC.cpe,cpN.cpe,3);
+  h+=costCard('CPR',t('ต่อ 1,000 Reach','per 1,000 Reach'),BM.cpr,cpC.cpr,cpN.cpr,2);
   h+=`</div>`;
   h+=`<div class="g2" style="margin-top:18px">
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">ดัชนีต้นทุน เทียบ Benchmark (BM = 100 · ยิ่งต่ำยิ่งคุ้ม)</h3><div class="chartbox" style="height:300px"><canvas id="exCostIdx"></canvas></div></div>`;
-  h+=insight('good','💰 Media Efficiency — งบยิงแอดคุ้มกว่า Benchmark ทุกตัวชี้วัด',
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('ดัชนีต้นทุน เทียบ Benchmark (BM = 100 · ยิ่งต่ำยิ่งคุ้ม)','Cost Index vs Benchmark (BM = 100 · lower = better)')}</h3><div class="chartbox" style="height:300px"><canvas id="exCostIdx"></canvas></div></div>`;
+  h+=insight('good',t('💰 Media Efficiency — งบยิงแอดคุ้มกว่า Benchmark ทุกตัวชี้วัด','💰 Media Efficiency — ad spend beats Benchmark on every metric'),
     fw([
-      ['What Happened',`ทั้ง 2 แคมเปญต้นทุนต่อผลลัพธ์ต่ำกว่า benchmark ทุกตัว — NPD คุ้มสุด (CPM ${bht(cpN.cpm,2)} · CPE ${bht(cpN.cpe,3)}) ส่วน Cool (CPM ${bht(cpC.cpm,2)} · CPE ${bht(cpC.cpe,3)})`],
-      ['Why It Happened','งบยิงแอดเล็กแต่ KOL content สร้าง organic reach มหาศาล → amplification ดันทุก metric ให้ถูกลงมาก'],
-      ['Business Impact','ทุกบาทที่ยิงแอดได้ impression/engagement สูงกว่าค่ากลางอุตสาหกรรมหลายเท่า — paid budget มี leverage สูง'],
-      ['Recommendation','อัดงบ boost เพิ่มในกลุ่ม KOL ที่ ER สูง (Efficiency group) เพื่อขยายผลในจุดที่ amplification ทำงานดีที่สุด'],
-      ['Expected Impact','ถ้าคง CPM ระดับนี้ การเพิ่มงบยิงเชิงเลือกจุดจะได้ impression เพิ่มในต้นทุนที่ยังต่ำกว่า benchmark']
+      ['What Happened',t(`ทั้ง 2 แคมเปญต้นทุนต่อผลลัพธ์ต่ำกว่า benchmark ทุกตัว — NPD คุ้มสุด (CPM ${bht(cpN.cpm,2)} · CPE ${bht(cpN.cpe,3)}) ส่วน Cool (CPM ${bht(cpC.cpm,2)} · CPE ${bht(cpC.cpe,3)})`,`Both campaigns sit below benchmark on every metric — NPD most efficient (CPM ${bht(cpN.cpm,2)} · CPE ${bht(cpN.cpe,3)}), Cool (CPM ${bht(cpC.cpm,2)} · CPE ${bht(cpC.cpe,3)})`)],
+      ['Why It Happened',t('งบยิงแอดเล็กแต่ KOL content สร้าง organic reach มหาศาล → amplification ดันทุก metric ให้ถูกลงมาก','Small ad spend rides on huge organic reach from KOL content → amplification drives every metric far cheaper')],
+      ['Business Impact',t('ทุกบาทที่ยิงแอดได้ impression/engagement สูงกว่าค่ากลางอุตสาหกรรมหลายเท่า — paid budget มี leverage สูง','Every baht of ad spend delivers impressions/engagement several times above the industry median — high leverage on paid budget')],
+      ['Recommendation',t('อัดงบ boost เพิ่มในกลุ่ม KOL ที่ ER สูง (Efficiency group) เพื่อขยายผลในจุดที่ amplification ทำงานดีที่สุด','Push more boost budget to high-ER KOLs (Efficiency group) to scale where amplification works best')],
+      ['Expected Impact',t('ถ้าคง CPM ระดับนี้ การเพิ่มงบยิงเชิงเลือกจุดจะได้ impression เพิ่มในต้นทุนที่ยังต่ำกว่า benchmark','At this CPM level, selective boost increases will add impressions at a cost still below benchmark')]
     ]));
   h+=`</div>`;
-  h+=`<div class="note" style="margin-top:10px">※ คำนวณจากงบยิงแอดจริงต่อแคมเปญ (เก็บเป็นความลับ — ไม่แสดงในรายงาน) · ฐานต้นทุน = ค่ายิงแอดเท่านั้น (ไม่รวมค่าตัว KOL) จึงสะท้อน “media amplification efficiency” มิใช่ CAC รวม · Benchmark เป็นค่าอ้างอิงอุตสาหกรรม (indicative) เปลี่ยนเป็นเรตการ์ดบริษัทได้ทุกเมื่อ</div>`;
+  h+=`<div class="note" style="margin-top:10px">${t('※ คำนวณจากงบยิงแอดจริงต่อแคมเปญ (เก็บเป็นความลับ — ไม่แสดงในรายงาน) · ฐานต้นทุน = ค่ายิงแอดเท่านั้น (ไม่รวมค่าตัว KOL) จึงสะท้อน “media amplification efficiency” มิใช่ CAC รวม · Benchmark เป็นค่าอ้างอิงอุตสาหกรรม (indicative) เปลี่ยนเป็นเรตการ์ดบริษัทได้ทุกเมื่อ','※ Computed from real per-campaign ad spend (confidential — not shown in report) · Cost basis = ad spend only (excl. KOL fees), reflecting media amplification efficiency, not total CAC · Benchmark is an indicative industry reference, replaceable with your own rate card anytime')}</div>`;
   h+='</section>';
 
   pg.innerHTML=h;
@@ -674,7 +700,7 @@ RENDER.exec = (pg)=>{
     {label:'Cool',data:cIdx(cpC),backgroundColor:CO.bad,borderRadius:6},
     {label:'NPD',data:cIdx(cpN),backgroundColor:CO.accent,borderRadius:6},
     {label:'Benchmark (100)',type:'line',data:[100,100,100,100],borderColor:'#9aa6bd',borderDash:[6,5],borderWidth:1.5,pointRadius:0}
-  ]},options:{plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:'% ของ Benchmark'},ticks:{callback:v=>v}}}}});
+  ]},options:{plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:t('% ของ Benchmark','% of Benchmark')},ticks:{callback:v=>v}}}}});
 };
 
 /* ====================================================== */
@@ -683,13 +709,13 @@ RENDER.exec = (pg)=>{
 RENDER.mandala = (pg)=>{
   // group 12 images into narrative chapters
   const chapters=[
-    {n:'01',t:'Brand Positioning & Vision',s:'TCL ในตลาดเครื่องใช้ไฟฟ้า — ภาพใหญ่และทิศทางแบรนด์',imgs:[0,1]},
-    {n:'02',t:'Product Ecosystem',s:'ไลน์อัปสินค้าและจุดขายหลักของแต่ละกลุ่ม',imgs:[2,3,4]},
-    {n:'03',t:'Audience & Market Insight',s:'พฤติกรรมผู้บริโภคและโอกาสในตลาด',imgs:[5,6,7]},
-    {n:'04',t:'Campaign & KOL Strategy',s:'กลยุทธ์การสื่อสารผ่าน KOL และ Content',imgs:[8,9]},
-    {n:'05',t:'Results & Forward Look',s:'ผลลัพธ์และทิศทางครึ่งปีหลัง',imgs:[10,11]},
+    {n:'01',t:'Brand Positioning & Vision',s:t('TCL ในตลาดเครื่องใช้ไฟฟ้า — ภาพใหญ่และทิศทางแบรนด์','TCL in the appliance market — big picture & brand direction'),imgs:[0,1]},
+    {n:'02',t:'Product Ecosystem',s:t('ไลน์อัปสินค้าและจุดขายหลักของแต่ละกลุ่ม','Product line-up & key selling points per group'),imgs:[2,3,4]},
+    {n:'03',t:'Audience & Market Insight',s:t('พฤติกรรมผู้บริโภคและโอกาสในตลาด','Consumer behaviour & market opportunity'),imgs:[5,6,7]},
+    {n:'04',t:'Campaign & KOL Strategy',s:t('กลยุทธ์การสื่อสารผ่าน KOL และ Content','Communication strategy via KOL & content'),imgs:[8,9]},
+    {n:'05',t:'Results & Forward Look',s:t('ผลลัพธ์และทิศทางครึ่งปีหลัง','Results & second-half direction'),imgs:[10,11]},
   ];
-  let h=sec('m-story','📖','Mandala · Brand Storytelling','เรียงเล่าเรื่องด้วยภาพใหญ่ แบ่งตามหัวข้อจากต้นน้ำสู่ผลลัพธ์','purple');
+  let h=sec('m-story','📖','Mandala · Brand Storytelling',t('เรียงเล่าเรื่องด้วยภาพใหญ่ แบ่งตามหัวข้อจากต้นน้ำสู่ผลลัพธ์','A visual narrative, chaptered from upstream to outcomes'),'purple');
   h+=`<p style="font-size:13px;color:var(--ink2);line-height:1.7;margin-bottom:8px">ชุดภาพ Mandala วางโครงเรื่องของแบรนด์ TCL ตลอด H1 — ตั้งแต่ตำแหน่งแบรนด์ในตลาด ระบบสินค้า อินไซต์ผู้บริโภค กลยุทธ์ KOL จนถึงผลลัพธ์ อ่านไล่จากบนลงล่างเป็น 5 บท</p>`;
   h+='</section>';
   chapters.forEach(ch=>{
@@ -701,7 +727,7 @@ RENDER.mandala = (pg)=>{
   /* market analysis */
   const aC=agg(D.cool.filter(isDone)), aN=agg(D.npd.filter(isDone));
   const audAll=audience([...D.cool,...D.npd]);
-  h+=sec('m-market','📈','วิเคราะห์ตลาด · Market Analysis','ตีความตลาดจากข้อมูล performance จริงของ 2 แคมเปญ','');
+  h+=sec('m-market','📈',t('วิเคราะห์ตลาด · Market Analysis','Market Analysis'),t('ตีความตลาดจากข้อมูล performance จริงของ 2 แคมเปญ','Market read from real performance data of both campaigns'),'');
   h+=`<div class="g2">
     <div class="panel-lite"><h3 class="sub" style="margin-top:0">โครงสร้างผู้ชมตลาด (รวม H1)</h3><div class="chartbox sm"><canvas id="mktAge"></canvas></div><div class="note">ถ่วงน้ำหนักด้วยยอด View จริงของทุกชิ้นงาน</div></div>
     <div class="panel-lite"><h3 class="sub" style="margin-top:0">Demand Signal ต่อกลุ่มสินค้า (View)</h3><div class="chartbox sm"><canvas id="mktProd"></canvas></div></div>
@@ -748,7 +774,7 @@ function renderCampaign(pg, rows, kpi, meta){
 
   let h='';
   /* ---- p-overview ---- */
-  h+=sec('p-overview','📦','Product · ภาพรวมแคมเปญ '+meta.short, meta.tagline, meta.cls);
+  h+=sec('p-overview','📦',t('Product · ภาพรวมแคมเปญ ','Product · Campaign Overview ')+meta.short, meta.tagline, meta.cls);
   h+=kpiCards(a);
   h+=`<div class="prodgrid" style="margin-top:18px">`;
   pkeys.forEach(p=>{ const o=pm[p]; const key=prodImgKey(p); const img=key&&D.prod_imgs[key]?D.prod_imgs[key]:null;
@@ -764,7 +790,7 @@ function renderCampaign(pg, rows, kpi, meta){
 
   /* ---- p-kpi · KPI vs Actual ---- */
   const withRev = kpi.new.review!=null;
-  h+=sec('p-kpi','🎯','KPI vs Actual · '+meta.short,'เป้า KPI ใหม่ เทียบผลจริง (Actual) — % Achieve รายตัวชี้วัด',meta.cls);
+  h+=sec('p-kpi','🎯','KPI vs Actual · '+meta.short,t('เป้า KPI ใหม่ เทียบผลจริง (Actual) — % Achieve รายตัวชี้วัด','Revised KPI targets vs Actual — % Achieve per metric'),meta.cls);
   h+=`<div class="g2 kpi2col">
     <div><h3 class="sub" style="margin-top:0">KPI เก่า / ใหม่ / Actual</h3>${kpiTriTable(kpi,withRev)}
       <div class="kolnote">No. KOL: <b>เก่า ${kpi.old.kol}</b> → <b style="color:${meta.color==="cool"?"var(--cool)":"var(--blue)"}">ใหม่ ${kpi.new.kol}</b>${withRev?` · ชิ้นงานรีวิว <b>${kpi.actual.review}</b>/${kpi.new.review}`:` · ส่งมอบ ${done.length} ราย`}</div></div>
@@ -777,35 +803,35 @@ function renderCampaign(pg, rows, kpi, meta){
   h+='</section>';
 
   /* ---- p-cost · Cost per Metric vs Benchmark (this campaign) ---- */
-  h+=sec('p-cost','💰','Cost per Metric · ต้นทุนต่อผลลัพธ์ · '+meta.short,'อิงงบยิงแอดของแคมเปญนี้ — ไม่แสดงตัวเลขงบ · เทียบ Benchmark TikTok KOL · TH/SEA · เครื่องใช้ไฟฟ้าขนาดเล็ก',meta.cls);
+  h+=sec('p-cost','💰',t('Cost per Metric · ต้นทุนต่อผลลัพธ์ · ','Cost per Metric · Cost per Outcome · ')+meta.short,t('อิงงบยิงแอดของแคมเปญนี้ — ไม่แสดงตัวเลขงบ · เทียบ Benchmark TikTok KOL · TH/SEA · เครื่องใช้ไฟฟ้าขนาดเล็ก',"Based on this campaign's ad spend — budget not shown · vs benchmark TikTok KOL · TH/SEA · small home appliances"),meta.cls);
   const cSpend = meta.color==='cool' ? ADS_SPEND.cool : ADS_SPEND.npd;
   const cp = costPer(cSpend, a);
   const dotCls = meta.color==='cool' ? 'dot-cool' : 'dot-npd';
   const campLabel = meta.color==='cool' ? 'Cool Campaign' : 'NPD Launch';
   h+=`<div class="costgrid">`;
-  h+=costCard1('CPM','ต่อ 1,000 Impression',BM.cpm,cp.cpm,2,dotCls,campLabel);
-  h+=costCard1('CPV','ต่อ 1 View',BM.cpv,cp.cpv,3,dotCls,campLabel);
-  h+=costCard1('CPE','ต่อ 1 Engagement',BM.cpe,cp.cpe,3,dotCls,campLabel);
-  h+=costCard1('CPR','ต่อ 1,000 Reach',BM.cpr,cp.cpr,2,dotCls,campLabel);
+  h+=costCard1('CPM',t('ต่อ 1,000 Impression','per 1,000 Impressions'),BM.cpm,cp.cpm,2,dotCls,campLabel);
+  h+=costCard1('CPV',t('ต่อ 1 View','per View'),BM.cpv,cp.cpv,3,dotCls,campLabel);
+  h+=costCard1('CPE',t('ต่อ 1 Engagement','per Engagement'),BM.cpe,cp.cpe,3,dotCls,campLabel);
+  h+=costCard1('CPR',t('ต่อ 1,000 Reach','per 1,000 Reach'),BM.cpr,cp.cpr,2,dotCls,campLabel);
   h+=`</div>`;
   const cAll=[['CPM',cp.cpm,BM.cpm],['CPV',cp.cpv,BM.cpv],['CPE',cp.cpe,BM.cpe],['CPR',cp.cpr,BM.cpr]];
   const avgEff = cAll.reduce((s,[,v,bm])=>s+(1-v/bm),0)/cAll.length*100;
   h+=`<div class="g2" style="margin-top:18px">
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">ดัชนีต้นทุน เทียบ Benchmark (BM = 100 · ยิ่งต่ำยิ่งคุ้ม)</h3><div class="chartbox" style="height:280px"><canvas id="cpCostIdx"></canvas></div></div>`;
-  h+=insight('good',`💰 ${campLabel} — ต้นทุนต่อผลลัพธ์ต่ำกว่า Benchmark เฉลี่ย ${avgEff.toFixed(0)}%`,
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('ดัชนีต้นทุน เทียบ Benchmark (BM = 100 · ยิ่งต่ำยิ่งคุ้ม)','Cost Index vs Benchmark (BM = 100 · lower = better)')}</h3><div class="chartbox" style="height:280px"><canvas id="cpCostIdx"></canvas></div></div>`;
+  h+=insight('good',t(`💰 ${campLabel} — ต้นทุนต่อผลลัพธ์ต่ำกว่า Benchmark เฉลี่ย ${avgEff.toFixed(0)}%`,`💰 ${campLabel} — cost per outcome averages ${avgEff.toFixed(0)}% below Benchmark`),
     fw([
-      ['What Happened',`ทุก metric ของ ${campLabel} อยู่ต่ำกว่า benchmark — CPM ${bht(cp.cpm,2)} · CPV ${bht(cp.cpv,3)} · CPE ${bht(cp.cpe,3)} · CPR ${bht(cp.cpr,2)}`],
-      ['Why It Happened','งบยิงแอดที่ลงไปขี่บน organic reach ของ KOL content ที่สูง → ต้นทุนต่อหน่วยถูกกดลงมาก'],
-      ['Business Impact',`media budget มี leverage สูง — ทุกบาทได้ผลลัพธ์เกินค่ากลางอุตสาหกรรมของหมวดเครื่องใช้ไฟฟ้าขนาดเล็ก`],
-      ['Recommendation','โยกงบ boost ไปยัง KOL/คอนเทนต์ที่ ER สูงในแคมเปญนี้ เพื่อรักษา CPE ให้ต่ำต่อเนื่อง'],
-      ['Expected Impact','คงโครงสร้าง organic-led + boost แบบเลือกจุด จะรักษาต้นทุนต่อผลลัพธ์ให้ต่ำกว่า benchmark ใน H2']
+      ['What Happened',t(`ทุก metric ของ ${campLabel} อยู่ต่ำกว่า benchmark — CPM ${bht(cp.cpm,2)} · CPV ${bht(cp.cpv,3)} · CPE ${bht(cp.cpe,3)} · CPR ${bht(cp.cpr,2)}`,`Every metric of ${campLabel} is below benchmark — CPM ${bht(cp.cpm,2)} · CPV ${bht(cp.cpv,3)} · CPE ${bht(cp.cpe,3)} · CPR ${bht(cp.cpr,2)}`)],
+      ['Why It Happened',t('งบยิงแอดที่ลงไปขี่บน organic reach ของ KOL content ที่สูง → ต้นทุนต่อหน่วยถูกกดลงมาก','Ad spend rides on the high organic reach of KOL content → unit cost is pushed down sharply')],
+      ['Business Impact',t(`media budget มี leverage สูง — ทุกบาทได้ผลลัพธ์เกินค่ากลางอุตสาหกรรมของหมวดเครื่องใช้ไฟฟ้าขนาดเล็ก`,`High media-budget leverage — every baht beats the small-home-appliance industry median`)],
+      ['Recommendation',t('โยกงบ boost ไปยัง KOL/คอนเทนต์ที่ ER สูงในแคมเปญนี้ เพื่อรักษา CPE ให้ต่ำต่อเนื่อง','Shift boost budget to high-ER KOLs/content in this campaign to keep CPE consistently low')],
+      ['Expected Impact',t('คงโครงสร้าง organic-led + boost แบบเลือกจุด จะรักษาต้นทุนต่อผลลัพธ์ให้ต่ำกว่า benchmark ใน H2','Keeping an organic-led structure + selective boost will hold cost per outcome below benchmark in H2')]
     ]));
   h+=`</div>`;
-  h+=`<div class="note" style="margin-top:10px">※ คำนวณจากงบยิงแอดจริงของแคมเปญนี้ (เก็บเป็นความลับ — ไม่แสดงในรายงาน) · ฐานต้นทุน = ค่ายิงแอดเท่านั้น (ไม่รวมค่าตัว KOL) จึงสะท้อน “media amplification efficiency” · Benchmark เป็นค่าอ้างอิงอุตสาหกรรม (indicative) เปลี่ยนเป็นเรตการ์ดบริษัทได้</div>`;
+  h+=`<div class="note" style="margin-top:10px">${t('※ คำนวณจากงบยิงแอดจริงของแคมเปญนี้ (เก็บเป็นความลับ — ไม่แสดงในรายงาน) · ฐานต้นทุน = ค่ายิงแอดเท่านั้น (ไม่รวมค่าตัว KOL) จึงสะท้อน “media amplification efficiency” · Benchmark เป็นค่าอ้างอิงอุตสาหกรรม (indicative) เปลี่ยนเป็นเรตการ์ดบริษัทได้','※ Computed from this campaign\'s real ad spend (confidential — not shown) · Cost basis = ad spend only (excl. KOL fees), reflecting media amplification efficiency · Benchmark is an indicative industry reference, replaceable with your own rate card')}</div>`;
   h+='</section>';
 
   /* ---- p-product · by dimension ---- */
-  h+=sec('p-product','🧩','โปรดักส์ในแคมเปญ → ผลงานแยกตามมิติ','เทียบ View · Engagement · Reach · ER ของแต่ละสินค้า',meta.cls);
+  h+=sec('p-product','🧩',t('โปรดักส์ในแคมเปญ → ผลงานแยกตามมิติ','Products → Performance by Dimension'),t('เทียบ View · Engagement · Reach · ER ของแต่ละสินค้า','Compare View · Engagement · Reach · ER by product'),meta.cls);
   h+=`<div class="g2"><div class="panel-lite"><h3 class="sub" style="margin-top:0">View vs Engagement ต่อสินค้า</h3><div class="chartbox"><canvas id="cpProd1"></canvas></div></div>
     <div class="panel-lite"><h3 class="sub" style="margin-top:0">ER เฉลี่ยต่อสินค้า</h3><div class="chartbox"><canvas id="cpProd2"></canvas></div></div></div>`;
   h+=`<div class="tbl-wrap" style="margin-top:16px"><table class="matrix"><thead><tr><th>Product</th><th>ชิ้นงาน</th><th>Impression</th><th>View</th><th>Reach</th><th>Engagement</th><th>ER</th></tr></thead><tbody>`;
@@ -817,7 +843,7 @@ function renderCampaign(pg, rows, kpi, meta){
   h+='</section>';
 
   /* ---- p-tier ---- */
-  h+=sec('p-tier','🏅','Performance by Product · ผลงานแยกตาม Tier KOL','ประสิทธิภาพแยกตามระดับ KOL — Mega / Macro / Micro',meta.cls);
+  h+=sec('p-tier','🏅',t('Performance by Product · ผลงานแยกตาม Tier KOL','Performance by KOL Tier'),t('ประสิทธิภาพแยกตามระดับ KOL — Mega / Macro / Micro','Performance by KOL tier — Mega / Macro / Micro'),meta.cls);
   h+=`<div class="g2"><div class="panel-lite"><h3 class="sub" style="margin-top:0">View & ชิ้นงานต่อ Tier</h3><div class="chartbox sm"><canvas id="cpTier1"></canvas></div></div>
     <div class="panel-lite"><h3 class="sub" style="margin-top:0">ER เฉลี่ยต่อ Tier</h3><div class="chartbox sm"><canvas id="cpTier2"></canvas></div></div></div>`;
   h+=`<div class="tbl-wrap" style="margin-top:16px"><table class="matrix"><thead><tr><th>Tier</th><th>ชิ้นงาน</th><th>View</th><th>Engagement</th><th>ER</th><th>Avg View/ชิ้น</th></tr></thead><tbody>`;
@@ -835,19 +861,19 @@ function renderCampaign(pg, rows, kpi, meta){
   h+='</section>';
 
   /* ---- p-eng ---- */
-  h+=sec('p-eng','❤️','Top KOL ตาม Engagement','จัดอันดับผู้สร้าง engagement สูงสุด',meta.cls);
+  h+=sec('p-eng','❤️',t('Top KOL ตาม Engagement','Top KOL by Engagement'),t('จัดอันดับผู้สร้าง engagement สูงสุด','Ranking creators by highest engagement'),meta.cls);
   h+=`<div class="chartbox" style="height:${Math.max(260,byEng.slice(0,12).length*30)}px"><canvas id="cpTopEng"></canvas></div>`;
   h+=topKolTable(byEng.slice(0,10),'eng');
   h+='</section>';
 
   /* ---- p-view ---- */
-  h+=sec('p-view','👁️','Top KOL ตาม View','จัดอันดับผู้สร้างยอดวิวสูงสุด',meta.cls);
+  h+=sec('p-view','👁️',t('Top KOL ตาม View','Top KOL by View'),t('จัดอันดับผู้สร้างยอดวิวสูงสุด','Ranking creators by highest views'),meta.cls);
   h+=`<div class="chartbox" style="height:${Math.max(260,byView.slice(0,12).length*30)}px"><canvas id="cpTopView"></canvas></div>`;
   h+=topKolTable(byView.slice(0,10),'view');
   h+='</section>';
 
   /* ---- p-aud ---- */
-  h+=sec('p-aud','👥','โปรไฟล์ผู้ชม · เพศ / อายุ','โครงสร้างผู้ชมถ่วงน้ำหนักด้วยยอด View',meta.cls);
+  h+=sec('p-aud','👥',t('โปรไฟล์ผู้ชม · เพศ / อายุ','Audience Profile · Gender / Age'),t('โครงสร้างผู้ชมถ่วงน้ำหนักด้วยยอด View','Audience structure weighted by views'),meta.cls);
   h+=`<div class="g2"><div class="panel-lite"><h3 class="sub" style="margin-top:0">สัดส่วนเพศ</h3><div class="chartbox sm"><canvas id="cpGender"></canvas></div></div>
     <div class="panel-lite"><h3 class="sub" style="margin-top:0">ช่วงอายุ</h3><div class="chartbox sm"><canvas id="cpAge"></canvas></div></div></div>`;
   const domAge=['18-24','25-34','35-44','45-54','55+'][aud.ages.indexOf(Math.max(...aud.ages))];
@@ -856,7 +882,7 @@ function renderCampaign(pg, rows, kpi, meta){
   h+='</section>';
 
   /* ---- p-lineup ---- */
-  h+=sec('p-lineup','⭐','KOL Line-up · วิเคราะห์ stat รายคน','อันดับ · บทบาท · ER · สถิติ ของ KOL ทุกคนที่ส่งมอบแล้ว',meta.cls);
+  h+=sec('p-lineup','⭐',t('KOL Line-up · วิเคราะห์ stat รายคน','KOL Line-up · Individual Stats'),t('อันดับ · บทบาท · ER · สถิติ ของ KOL ทุกคนที่ส่งมอบแล้ว','Rank · role · ER · stats for every delivered KOL'),meta.cls);
   const imprSorted=[...done].sort((x,y)=>y.impression-x.impression);
   const imprRank=new Map(); imprSorted.forEach((r,i)=>imprRank.set(r,i+1));
   const lineupOrder=[...done].sort((x,y)=>y.eng-x.eng);
@@ -890,7 +916,7 @@ function renderCampaign(pg, rows, kpi, meta){
   h+='</section>';
 
   /* ---- p-detail ---- */
-  h+=sec('p-detail','📋','Detail · ตารางวิเคราะห์รายบุคคล','กรองและจัดเรียงตาม key metric ได้',meta.cls);
+  h+=sec('p-detail','📋',t('Detail · ตารางวิเคราะห์รายบุคคล','Detail · Per-Person Analysis Table'),t('กรองและจัดเรียงตาม key metric ได้','Filter and sort by key metric'),meta.cls);
   h+=`<div class="filters">
     <label>Tier</label><select id="fTier"><option value="">ทั้งหมด</option>${tiers.map(t=>`<option>${t}</option>`).join('')}</select>
     <label>Channel</label><select id="fChan"><option value="">ทั้งหมด</option>${[...new Set(done.map(r=>r.channel.trim()))].map(c=>`<option>${esc(c)}</option>`).join('')}</select>
@@ -904,7 +930,7 @@ function renderCampaign(pg, rows, kpi, meta){
   h+='</section>';
 
   /* ---- p-director ---- */
-  h+=sec('p-director','🧠','Director Analysis · จัดอันดับ + แบ่งบทบาท','จัดอันดับและแบ่งบทบาทอัตโนมัติจากข้อมูลจริง',meta.cls);
+  h+=sec('p-director','🧠',t('Director Analysis · จัดอันดับ + แบ่งบทบาท','Director Analysis · Ranking + Roles'),t('จัดอันดับและแบ่งบทบาทอัตโนมัติจากข้อมูลจริง','Automatic ranking and role grouping from real data'),meta.cls);
   const totImpr=a.imp||1;
   const avgER=a.imp? a.eng/a.imp*100 : 0;
   const byImpr=[...done].sort((x,y)=>y.impression-x.impression);
@@ -939,14 +965,14 @@ function renderCampaign(pg, rows, kpi, meta){
   h+='</section>';
 
   /* ---- p-take ---- */
-  h+=sec('p-take','📝','สรุป Direct Key Takeaway · วิเคราะห์สิ้นปีแรก',meta.short+' — บทเรียนและทิศทาง H2',meta.cls);
+  h+=sec('p-take','📝',t('สรุป Direct Key Takeaway · วิเคราะห์สิ้นปีแรก','Direct Key Takeaway · Mid-Year Analysis'),meta.short+t(' — บทเรียนและทิศทาง H2',' — lessons & H2 direction'),meta.cls);
   h+=`<div class="takeaway-grid">`;
   h+=meta.takeaways;
   h+=`</div>`;
   h+='</section>';
 
   /* ---- p-content ---- */
-  h+=sec('p-content','🎬','Content / Ads','แนวทางคอนเทนต์และการต่อยอดด้วยสื่อ Paid',meta.cls);
+  h+=sec('p-content','🎬','Content / Ads',t('แนวทางคอนเทนต์และการต่อยอดด้วยสื่อ Paid','Content direction and paid-media amplification'),meta.cls);
   h+=meta.content;
   h+='</section>';
 
@@ -958,7 +984,7 @@ function renderCampaign(pg, rows, kpi, meta){
   mkChart('cpCostIdx',{type:'bar',data:{labels:['CPM','CPV','CPE','CPR'],datasets:[
     {label:campLabel,data:[cp.cpm/BM.cpm*100,cp.cpv/BM.cpv*100,cp.cpe/BM.cpe*100,cp.cpr/BM.cpr*100].map(x=>+x.toFixed(1)),backgroundColor:ccol,borderRadius:6},
     {label:'Benchmark (100)',type:'line',data:[100,100,100,100],borderColor:'#9aa6bd',borderDash:[6,5],borderWidth:1.5,pointRadius:0}
-  ]},options:{plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:'% ของ Benchmark'},ticks:{callback:v=>v}}}}});
+  ]},options:{plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:t('% ของ Benchmark','% of Benchmark')},ticks:{callback:v=>v}}}}});
   mkChart('cpProd1',{type:'bar',data:{labels:pkeys,datasets:[{label:'View',data:pkeys.map(p=>pm[p].view),backgroundColor:CO[meta.color]||CO.cool,borderRadius:6,yAxisID:'y'},{label:'Engagement',data:pkeys.map(p=>pm[p].eng),backgroundColor:CO.warn,borderRadius:6,yAxisID:'y'}]},options:{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>NFc(v)}}}}});
   mkChart('cpProd2',{type:'bar',data:{labels:pkeys,datasets:[{label:'ER %',data:pkeys.map(p=>+(pm[p].er*100).toFixed(2)),backgroundColor:CO.purple,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
   const tk=tiers.filter(t=>tm[t].n);
@@ -966,7 +992,7 @@ function renderCampaign(pg, rows, kpi, meta){
   mkChart('cpTier2',{type:'bar',data:{labels:tk,datasets:[{label:'ER %',data:tk.map(t=>+(tm[t].er*100).toFixed(2)),backgroundColor:CO.purple,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
   barKol('cpTopEng',byEng.slice(0,12),'eng',CO.bad);
   barKol('cpTopView',byView.slice(0,12),'view',CO.cool);
-  mkChart('cpGender',{type:'doughnut',data:{labels:['หญิง','ชาย','อื่นๆ'],datasets:[{data:[+(aud.f*100).toFixed(1),+(aud.m*100).toFixed(1),+(aud.o*100).toFixed(1)],backgroundColor:['#e85d9c',CO.accent,'#9aa6bd'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom'}},cutout:'60%'}});
+  mkChart('cpGender',{type:'doughnut',data:{labels:[t('หญิง','Female'),t('ชาย','Male'),t('อื่นๆ','Other')],datasets:[{data:[+(aud.f*100).toFixed(1),+(aud.m*100).toFixed(1),+(aud.o*100).toFixed(1)],backgroundColor:['#e85d9c',CO.accent,'#9aa6bd'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom'}},cutout:'60%'}});
   mkChart('cpAge',{type:'bar',data:{labels:['18-24','25-34','35-44','45-54','55+'],datasets:[{label:'%',data:aud.ages.map(x=>+(x*100).toFixed(1)),backgroundColor:CO.good,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
 
   /* detail table interactivity */
