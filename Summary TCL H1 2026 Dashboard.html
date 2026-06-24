@@ -360,7 +360,7 @@ table.dt tbody tr:hover td:first-child{background:#f6f9ff}
       <button class="burger" id="burger">☰</button>
       <div>
         <h1 id="pgTitle">H1 2026 · Executive Summary</h1>
-        <div class="crumb" id="pgCrumb">ภาพรวมผลงาน KOL ครึ่งปีแรก</div>
+        <div class="crumb" id="pgCrumb">KOL Mid-Year Performance Summary</div>
       </div>
       <div class="sp"></div>
       <div class="langtog" role="group" aria-label="Language">
@@ -383,6 +383,22 @@ const D = JSON.parse(document.getElementById('DATA').textContent);
 let LANG = 'th';
 let CUR_MENU = 'exec', CUR_ANCHOR = null;
 function t(th, en){ return LANG==='en' ? (en!==undefined?en:th) : th; }
+/* KOL account-name romanization — shown only in EN mode (TH keeps real handle) */
+const NAME_MAP={
+  'Jenny Arora เจนนี่อโรร่า':'Jenny Arora',
+  'ติดโปร':'Tidpro',
+  'น้องปลื้มยัยเพียช':'Nong Pleum Yai Peach',
+  'บุ๊ค ธีร์':'Book Thee',
+  'รีวิวบอกต่อ':'Review Bok Tor',
+  'สุภาชานิผู้คลั่งรัก':'Suphachani Phu Khlang Rak',
+  'อาตี๋ รีวิว':'Atee Review',
+  'เจ้ศรีปากอ้า':'Je Si Pak Aa',
+  'เชอร์รี่สตอรี่':'Cherry Story',
+  'เมนี่ฉองขวบ':'Manee Chong Khuap',
+  'เอมอ้ม':'Em Om',
+  'โปรฮับ':'Prohub'
+};
+function dispName(a){ a=(a||'').trim(); return LANG==='en' ? (NAME_MAP[a]||a) : a; }
 function setLang(l){ if(l===LANG) return; LANG=l;
   document.querySelectorAll('.langbtn').forEach(b=>b.classList.toggle('on', b.dataset.lang===l));
   document.documentElement.lang = l;
@@ -404,7 +420,7 @@ const isPending = r => /watt/i.test(r.status||'');
 function chanBadge(c){ c=(c||'').trim().toUpperCase(); if(c.includes('TIK')) return '<span class="badge b-tiktok">TikTok</span>'; if(c.includes('FB')||c.includes('FACE')) return '<span class="badge b-fb">Facebook</span>'; if(c.includes('YOU')) return '<span class="badge b-yt">YouTube</span>'; if(c.includes('IG')||c.includes('INSTA')) return '<span class="badge b-ig">Instagram</span>'; return '<span class="badge">'+esc(c)+'</span>'; }
 function tierBadge(t){ t=(t||'').trim(); const l=t.toLowerCase(); const c=l==='mega'?'b-mega':l==='macro'?'b-macro':'b-micro'; return `<span class="badge ${c}">${esc(t||'—')}</span>`; }
 function agg(rows){ const a={n:0,follower:0,imp:0,view:0,reach:0,eng:0}; rows.forEach(r=>{a.n++;a.follower+=r.follower;a.imp+=r.impression;a.view+=r.view;a.reach+=r.reach;a.eng+=r.eng;}); a.er=a.imp?a.eng/a.imp:0; return a; }
-function avatar(r){ return r.img? `<img src="${r.img}" alt="">` : `<div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#c9d4ea,#aab8d6);display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">${esc((r.account||'?').trim().charAt(0).toUpperCase())}</div>`; }
+function avatar(r){ return r.img? `<img src="${r.img}" alt="">` : `<div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#c9d4ea,#aab8d6);display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">${esc((dispName(r.account)||'?').charAt(0).toUpperCase())}</div>`; }
 
 let CHARTS=[];
 function destroyCharts(){ CHARTS.forEach(c=>{try{c.destroy()}catch(e){}}); CHARTS=[]; }
@@ -421,7 +437,7 @@ const BM={cpm:15, cpv:0.05, cpe:0.5, cpr:25};
 function costPer(spend,a){ return {cpm:spend/a.imp*1000, cpv:spend/a.view, cpe:spend/a.eng, cpr:spend/a.reach*1000}; }
 function bht(v,dp){ return '฿'+v.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp}); }
 function vBadge(val,bm){ const d=(val-bm)/bm*100, good=val<=bm; return `<span class="cc-badge ${good?'cc-g':'cc-r'}">${good?t('▼ ถูกกว่า BM','▼ below BM'):t('▲ แพงกว่า BM','▲ above BM')} ${Math.abs(d).toFixed(0)}%</span>`; }
-function cBar(val,bm){ const r=Math.min(val/bm,1.5), w=(r/1.5*100).toFixed(1), good=val<=bm; return `<div class="cc-track" title="Benchmark = เส้นกลาง"><div class="cc-bm"></div><div class="cc-fill ${good?'cc-fg':'cc-fr'}" style="width:${w}%"></div></div>`; }
+function cBar(val,bm){ const r=Math.min(val/bm,1.5), w=(r/1.5*100).toFixed(1), good=val<=bm; return `<div class="cc-track" title="${t('Benchmark = เส้นกลาง','Benchmark = center line')}"><div class="cc-bm"></div><div class="cc-fill ${good?'cc-fg':'cc-fr'}" style="width:${w}%"></div></div>`; }
 function costCard(code,name,bmv,vC,vN,dp){ return `<div class="costcard">
   <div class="cc-head"><div><span class="cc-code">${code}</span> <span class="cc-name">${name}</span></div><div class="cc-bm-l">Benchmark<br><b>${bht(bmv,dp)}</b></div></div>
   <div class="cc-row"><div class="cc-cmp"><span class="dot dot-cool"></span>Cool</div><div class="cc-val">${bht(vC,dp)}</div>${vBadge(vC,bmv)}</div>${cBar(vC,bmv)}
@@ -464,7 +480,7 @@ function kpiBarChart(id,kpi,actualColor){
   const M=[['Impression','impression'],['View','view'],['Reach','reach'],['Eng','eng'],['Follower','follower']];
   const ch=mkChart(id,{ type:'bar',
     data:{ labels:M.map(x=>x[0]), datasets:[
-      {label:'KPI ใหม่',data:M.map(x=>kpi.new[x[1]]||0),backgroundColor:'#c9b29c',borderRadius:4,barPercentage:.74,categoryPercentage:.72},
+      {label:t('KPI ใหม่','KPI Revised'),data:M.map(x=>kpi.new[x[1]]||0),backgroundColor:'#c9b29c',borderRadius:4,barPercentage:.74,categoryPercentage:.72},
       {label:'Actual',data:M.map(x=>kpi.actual[x[1]]||0),backgroundColor:actualColor,borderRadius:4,barPercentage:.74,categoryPercentage:.72}
     ]},
     options:{ layout:{padding:{top:22}}, plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+': '+NFc(c.parsed.y)}}},
@@ -476,17 +492,17 @@ function kpiBarChart(id,kpi,actualColor){
 
 /* ============ KPI BLOCKS ============ */
 function kpiTriTable(kpi,withReview){
-  const rows=[['Total KOL','kol',NF],...(withReview?[['ชิ้นงาน (Reviews)','review',NF]]:[]),['Follower','follower',NFc],['Impression','impression',NFc],['View','view',NFc],['Reach','reach',NFc],['Engagement','eng',NFc]];
-  const stg=[['เก่า · Original','old','tg-old'],['ใหม่ · Revised','new','tg-new'],['Actual','actual','tg-act']];
+  const rows=[['Total KOL','kol',NF],...(withReview?[[t('ชิ้นงาน (Reviews)','Pieces (Reviews)'),'review',NF]]:[]),['Follower','follower',NFc],['Impression','impression',NFc],['View','view',NFc],['Reach','reach',NFc],['Engagement','eng',NFc]];
+  const stg=[[t('เก่า · Original','Original'),'old','tg-old'],[t('ใหม่ · Revised','Revised'),'new','tg-new'],['Actual','actual','tg-act']];
   let h='<div class="tbl-wrap"><table class="kpi-tri"><thead><tr><th>Metric</th>';
-  stg.forEach(s=>h+=`<th class="${s[2]}">${s[0]}</th>`); h+='<th>Actual vs ใหม่</th></tr></thead><tbody>';
+  stg.forEach(s=>h+=`<th class="${s[2]}">${s[0]}</th>`); h+='<th>'+t('Actual vs ใหม่','Actual vs Revised')+'</th></tr></thead><tbody>';
   rows.forEach(rd=>{ h+=`<tr><td class="mname">${rd[0]}</td>`; stg.forEach(s=>{const v=kpi[s[1]][rd[1]]||0; h+=`<td class="${s[2]}">${rd[2](v)}</td>`;}); const act=kpi.actual[rd[1]]||0,nw=kpi.new[rd[1]]||0,p=nw?act/nw:0,cls=p>=1?'ok':p>=0.9?'warn':'bad'; h+=`<td class="ach ${cls}">${nw?PC1(p):'—'}</td></tr>`; });
   return h+'</tbody></table></div>';
 }
 function achBars(kpi){
   const m=[['Impression','impression'],['View','view'],['Reach','reach'],['Engagement','eng']]; let h='<div class="achwrap">';
   m.forEach(x=>{const act=kpi.actual[x[1]],nw=kpi.new[x[1]],p=nw?act/nw:0,w=Math.min(100,p*100),cls=p>=1?'ok':p>=0.9?'warn':'bad';
-    h+=`<div class="achrow"><div class="achlabel">${x[0]}<span>${NFc(act)} / ${NFc(nw)} ใหม่</span></div><div class="achbar"><div class="achfill ${cls}" style="width:${w}%"></div></div><div class="achpct ${cls}">${PC1(p)}</div></div>`;});
+    h+=`<div class="achrow"><div class="achlabel">${x[0]}<span>${NFc(act)} / ${NFc(nw)} ${t('ใหม่','Revised')}</span></div><div class="achbar"><div class="achfill ${cls}" style="width:${w}%"></div></div><div class="achpct ${cls}">${PC1(p)}</div></div>`;});
   return h+'</div>';
 }
 function kpiCards(a){
@@ -514,12 +530,12 @@ function chIco(c){ c=(c||'').trim().toUpperCase(); if(c.includes('TIK'))return['
 function tcol(t){ t=(t||'').trim().toLowerCase(); return t==='mega'?'#7c4dff':t==='macro'?'#1455f0':'#00b4d8'; }
 function kolNarr(r,imprRank){
   const er=r.er*100; let role,tags;
-  if(er<1.5){ role='เป็นบทบาท Top-of-funnel เน้นสร้าง Awareness และยอดวิวมากกว่า Engagement เชิงลึก'; tags=['Reach สูง','สร้างการรับรู้']; }
-  else if(er>=4){ role='เป็น Engagement Driver สร้าง Interaction สูง เหมาะกับ Mid-funnel'; tags=['Engagement สูง','สร้างการมีส่วนร่วม']; }
-  else { role='ผลงานสมดุล ทั้ง Reach และ Engagement'; tags=['สมดุล','ครบทุกมิติ']; }
+  if(er<1.5){ role=t('เป็นบทบาท Top-of-funnel เน้นสร้าง Awareness และยอดวิวมากกว่า Engagement เชิงลึก','A Top-of-funnel role focused on Awareness and views more than deep Engagement'); tags=[t('Reach สูง','High Reach'),t('สร้างการรับรู้','Builds Awareness')]; }
+  else if(er>=4){ role=t('เป็น Engagement Driver สร้าง Interaction สูง เหมาะกับ Mid-funnel','An Engagement Driver generating high interaction, suited to Mid-funnel'); tags=[t('Engagement สูง','High Engagement'),t('สร้างการมีส่วนร่วม','Drives Participation')]; }
+  else { role=t('ผลงานสมดุล ทั้ง Reach และ Engagement','Balanced performance across both Reach and Engagement'); tags=[t('สมดุล','Balanced'),t('ครบทุกมิติ','All-round')]; }
   if(imprRank<=3) tags=['🏆 Top '+imprRank,...tags];
   const ch=(r.channel||'TIKTOK').trim();
-  const narr=`อันดับ <b>${imprRank}</b> Impression (${NFc(r.impression)}) · Reach กว้าง <b>${NFc(r.reach)}</b> บน ${esc(ch)} · ER <b>${er.toFixed(2)}%</b> — ${role}`;
+  const narr=t(`อันดับ <b>${imprRank}</b> Impression (${NFc(r.impression)}) · Reach กว้าง <b>${NFc(r.reach)}</b> บน ${esc(ch)} · ER <b>${er.toFixed(2)}%</b> — ${role}`,`Rank <b>${imprRank}</b> by Impression (${NFc(r.impression)}) · broad Reach <b>${NFc(r.reach)}</b> on ${esc(ch)} · ER <b>${er.toFixed(2)}%</b> — ${role}`);
   return {narr,tags};
 }
 
@@ -593,27 +609,27 @@ RENDER.exec = (pg)=>{
   h+=sec('e-summary','📊',t('สรุปผลแคมเปญ KOL · สิ้นปีแรก (H1 2026)','KOL Campaign Summary · Mid-Year (H1 2026)'),t('ภาพรวม 2 แคมเปญหลัก — Cool Campaign และ TCL New Product Launch','Overview of 2 core campaigns — Cool Campaign and TCL New Product Launch'),'');
   const totKol=(D.kpi_cool.actual.kol||0)+(D.kpi_npd.actual.kol||0);
   h+=`<div class="cards" style="margin-bottom:14px">
-    <div class="card c-purple"><div class="k-val">2</div><div class="k-lab">แคมเปญ H1</div></div>
-    <div class="card c-accent"><div class="k-val">${totKol}</div><div class="k-lab">จำนวน KOL ทั้งหมด</div></div>
-    <div class="card c-cool"><div class="k-val">${coolD.length+npdD.length}</div><div class="k-lab">ชิ้นงานรีวิว (ส่งมอบ)</div></div>
-    <div class="card c-warn"><div class="k-val">${pendCool.length}</div><div class="k-lab">งานค้าง (รอส่ง)</div></div>
+    <div class="card c-purple"><div class="k-val">2</div><div class="k-lab">${t('แคมเปญ H1','H1 Campaigns')}</div></div>
+    <div class="card c-accent"><div class="k-val">${totKol}</div><div class="k-lab">${t('จำนวน KOL ทั้งหมด','Total KOLs')}</div></div>
+    <div class="card c-cool"><div class="k-val">${coolD.length+npdD.length}</div><div class="k-lab">${t('ชิ้นงานรีวิว (ส่งมอบ)','Review pieces (delivered)')}</div></div>
+    <div class="card c-warn"><div class="k-val">${pendCool.length}</div><div class="k-lab">${t('งานค้าง (รอส่ง)','Pending (to deliver)')}</div></div>
   </div>`;
   h+=kpiCards(aAll);
   h+=`<div class="g2" style="margin-top:20px">
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">View Share ระหว่างแคมเปญ (%)</h3><div class="chartbox sm"><canvas id="exShare"></canvas></div></div>
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">Engagement & ER เทียบแคมเปญ</h3><div class="chartbox sm"><canvas id="exCmp"></canvas></div></div>
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('View Share ระหว่างแคมเปญ (%)','View Share Across Campaigns (%)')}</h3><div class="chartbox sm"><canvas id="exShare"></canvas></div></div>
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('Engagement & ER เทียบแคมเปญ','Engagement & ER by Campaign')}</h3><div class="chartbox sm"><canvas id="exCmp"></canvas></div></div>
   </div>`;
   h+=`<div class="tbl-wrap" style="margin-top:18px"><table class="dt"><thead><tr><th>Campaign</th><th>KOL</th><th>Pieces</th><th>Impression</th><th>View</th><th>Reach</th><th>Engagement</th><th>ER</th></tr></thead><tbody>
     <tr><td><b>TCL-Cool Campaign</b></td><td>${D.kpi_cool.actual.kol}</td><td>${coolD.length}</td><td>${NF(aC.imp)}</td><td>${NF(aC.view)}</td><td>${NF(aC.reach)}</td><td>${NF(aC.eng)}</td><td>${PC(aC.er)}</td></tr>
     <tr><td><b>NPD Launch 2026</b></td><td>${D.kpi_npd.actual.kol}</td><td>${npdD.length}</td><td>${NF(aN.imp)}</td><td>${NF(aN.view)}</td><td>${NF(aN.reach)}</td><td>${NF(aN.eng)}</td><td>${PC(aN.er)}</td></tr>
-    </tbody><tfoot><tr style="font-weight:750;background:#fafbfe"><td>รวม H1</td><td>${D.kpi_cool.actual.kol+D.kpi_npd.actual.kol}</td><td>${coolD.length+npdD.length}</td><td>${NF(aAll.imp)}</td><td>${NF(aAll.view)}</td><td>${NF(aAll.reach)}</td><td>${NF(aAll.eng)}</td><td>${PC(aAll.er)}</td></tr></tfoot></table></div>`;
-  h+=insight('info','🎯 Director Read — ครึ่งปีแรกปิดด้วยฐาน Reach ระดับ '+NFc(aAll.reach),
+    </tbody><tfoot><tr style="font-weight:750;background:#fafbfe"><td>${t('รวม H1','H1 Total')}</td><td>${D.kpi_cool.actual.kol+D.kpi_npd.actual.kol}</td><td>${coolD.length+npdD.length}</td><td>${NF(aAll.imp)}</td><td>${NF(aAll.view)}</td><td>${NF(aAll.reach)}</td><td>${NF(aAll.eng)}</td><td>${PC(aAll.er)}</td></tr></tfoot></table></div>`;
+  h+=insight('info',t('🎯 Director Read — ครึ่งปีแรกปิดด้วยฐาน Reach ระดับ ','🎯 Director Read — mid-year closes on a Reach base of ')+NFc(aAll.reach),
     fw([
-      ['What Happened',`2 แคมเปญสร้าง View รวม <b>${NFc(aAll.view)}</b> และ Engagement <b>${NFc(aAll.eng)}</b> โดย NPD Launch ทำ ER เฉลี่ยสูงกว่า (<b>${PC(aN.er)}</b> vs <b>${PC(aC.er)}</b>)`],
-      ['Why It Happened','NPD ใช้ KOL สาย Event/Hero ที่มี context การเปิดตัวสินค้าใหม่ ทำให้คอนเทนต์มี novelty สูง — Cool เน้น volume reach ผ่าน Mega review จึงเจือจาง ER ลง'],
-      ['Business Impact',`ปิดครึ่งปีด้วย efficiency ที่ดีฝั่ง NPD แต่ Cool ยังมีงานค้าง <b>${pendCool.length} ชิ้น</b> ที่ยังไม่แปลงเป็นผลลัพธ์`],
-      ['Recommendation','เร่งเคลียร์งานค้าง Cool ให้จบ Q3 และยก learnings ER ของ NPD (Event-led storytelling) ไปใช้กับ review สินค้าหลัก'],
-      ['Expected Impact','การปิดงานค้าง 11 ชิ้นคาดเพิ่ม View อีก ~15-18% ของฐาน Cool และยก ER เฉลี่ยรวมเข้าใกล้ 6.0%']
+      ['What Happened',t(`2 แคมเปญสร้าง View รวม <b>${NFc(aAll.view)}</b> และ Engagement <b>${NFc(aAll.eng)}</b> โดย NPD Launch ทำ ER เฉลี่ยสูงกว่า (<b>${PC(aN.er)}</b> vs <b>${PC(aC.er)}</b>)`,`Both campaigns generated <b>${NFc(aAll.view)}</b> total Views and <b>${NFc(aAll.eng)}</b> Engagement, with NPD Launch achieving higher average ER (<b>${PC(aN.er)}</b> vs <b>${PC(aC.er)}</b>)`)],
+      ['Why It Happened',t('NPD ใช้ KOL สาย Event/Hero ที่มี context การเปิดตัวสินค้าใหม่ ทำให้คอนเทนต์มี novelty สูง — Cool เน้น volume reach ผ่าน Mega review จึงเจือจาง ER ลง','NPD used Event/Hero KOLs tied to a new-product launch, giving content high novelty — Cool prioritised volume reach via Mega reviews, which diluted ER')],
+      ['Business Impact',t(`ปิดครึ่งปีด้วย efficiency ที่ดีฝั่ง NPD แต่ Cool ยังมีงานค้าง <b>${pendCool.length} ชิ้น</b> ที่ยังไม่แปลงเป็นผลลัพธ์`,`Mid-year closes with strong efficiency on NPD, but Cool still has <b>${pendCool.length} pending pieces</b> not yet converted into results`)],
+      ['Recommendation',t('เร่งเคลียร์งานค้าง Cool ให้จบ Q3 และยก learnings ER ของ NPD (Event-led storytelling) ไปใช้กับ review สินค้าหลัก','Clear Cool pending pieces by Q3 and apply NPD ER learnings (event-led storytelling) to core-product reviews')],
+      ['Expected Impact',t('การปิดงานค้าง 11 ชิ้นคาดเพิ่ม View อีก ~15-18% ของฐาน Cool และยก ER เฉลี่ยรวมเข้าใกล้ 6.0%','Clearing the 11 pending pieces should add ~15-18% more View on the Cool base and lift blended ER toward 6.0%')]
     ]));
   h+='</section>';
 
@@ -623,20 +639,20 @@ RENDER.exec = (pg)=>{
     ['Briefed / Onboard', D.cool.length+D.npd.length, 'accent'],
     ['Content Produced', coolD.length+npdD.length, 'cool'],
     ['Review Delivered', coolD.length+npdD.length, 'good'],
-    ['Pending (งานค้าง)', pendCool.length, 'warn'],
+    [t('Pending (งานค้าง)','Pending'), pendCool.length, 'warn'],
   ];
   h+=`<div class="cards">${flowStages.map(s=>`<div class="card c-${s[2]}"><div class="k-val">${s[1]}</div><div class="k-lab">${s[0]}</div></div>`).join('')}</div>`;
-  h+=`<h3 class="sub">รายการงานค้าง · Cool Campaign (Status: Waiting)</h3>`;
+  h+=`<h3 class="sub">${t('รายการงานค้าง · Cool Campaign (Status: Waiting)','Pending Items · Cool Campaign (Status: Waiting)')}</h3>`;
   h+=`<div class="tbl-wrap"><table class="dt"><thead><tr><th>KOL</th><th>Channel</th><th>Product</th><th>Tier</th><th>Follower</th><th>Status</th></tr></thead><tbody>`;
-  pendCool.forEach(r=>{ h+=`<tr><td><div class="kname">${avatar(r)}<span class="kn">${esc(r.account.trim())}</span></div></td><td>${chanBadge(r.channel)}</td><td>${esc(prodName(r.product))}</td><td>${tierBadge(r.tier)}</td><td>${NF(r.follower)}</td><td><span class="badge b-pend">รอส่งรีวิว</span></td></tr>`; });
+  pendCool.forEach(r=>{ h+=`<tr><td><div class="kname">${avatar(r)}<span class="kn">${esc(dispName(r.account))}</span></div></td><td>${chanBadge(r.channel)}</td><td>${esc(prodName(r.product))}</td><td>${tierBadge(r.tier)}</td><td>${NF(r.follower)}</td><td><span class="badge b-pend">${t('รอส่งรีวิว','Awaiting review')}</span></td></tr>`; });
   h+=`</tbody></table></div>`;
-  h+=insight('warn','⚠️ งานค้าง '+pendCool.length+' ชิ้น = โอกาส View ที่ยังไม่ถูกเก็บ',
+  h+=insight('warn',t('⚠️ งานค้าง ','⚠️ ')+pendCool.length+t(' ชิ้น = โอกาส View ที่ยังไม่ถูกเก็บ',' pending pieces = unrealised View opportunity'),
     fw([
-      ['What Happened',`มี ${pendCool.length} ชิ้นงาน (Review 1/2) ที่ยังไม่ส่งมอบ ส่วนใหญ่เป็น Barter Macro tier`],
-      ['Why It Happened','Barter deal มี priority ต่ำในคิวของ KOL + รอบ revive review รอบ 2 ของ Mega หลายรายยังไม่ลง'],
-      ['Business Impact','Actual reviews 31 จากแผน 42 = ส่งมอบ 74% ทำให้ Impression actual ต่ำกว่าเป้าใหม่'],
-      ['Recommendation','ตั้ง hard deadline + ผูก incentive รอบถัดไปกับการส่งครบ และย้าย Barter ที่นิ่งไปเป็น standby list'],
-      ['Expected Impact','ปิดครบจะดัน Impression actual จาก 48.5M เข้าหาเป้าใหม่ 63.0M (+30%)']
+      ['What Happened',t(`มี ${pendCool.length} ชิ้นงาน (Review 1/2) ที่ยังไม่ส่งมอบ ส่วนใหญ่เป็น Barter Macro tier`,`${pendCool.length} pieces (Review 1/2) remain undelivered, mostly Barter Macro tier`)],
+      ['Why It Happened',t('Barter deal มี priority ต่ำในคิวของ KOL + รอบ revive review รอบ 2 ของ Mega หลายรายยังไม่ลง','Barter deals sit low in KOLs\' queues + several Mega round-2 revive reviews are still unpublished')],
+      ['Business Impact',t('Actual reviews 31 จากแผน 42 = ส่งมอบ 74% ทำให้ Impression actual ต่ำกว่าเป้าใหม่','Actual reviews 31 of 42 planned = 74% delivered, keeping actual Impression below the revised target')],
+      ['Recommendation',t('ตั้ง hard deadline + ผูก incentive รอบถัดไปกับการส่งครบ และย้าย Barter ที่นิ่งไปเป็น standby list','Set hard deadlines + tie next-round incentives to full delivery, and move stalled Barter to a standby list')],
+      ['Expected Impact',t('ปิดครบจะดัน Impression actual จาก 48.5M เข้าหาเป้าใหม่ 63.0M (+30%)','Full closure would push actual Impression from 48.5M toward the 63.0M revised target (+30%)')]
     ]));
   h+='</section>';
 
@@ -645,24 +661,24 @@ RENDER.exec = (pg)=>{
   /* Cool block — image1 style: table (left) + KPI ใหม่ vs Actual bar (right) */
   h+=`<div class="kpiblock"><span class="kpi-tag kt-cool">COOL Campaign</span>
     <div class="g2 kpi2col">
-      <div><h3 class="sub" style="margin-top:0">KPI เก่า / ใหม่ / Actual</h3>${kpiTriTable(D.kpi_cool,true)}
-        <div class="kolnote">No. KOL: <b>เก่า ${D.kpi_cool.old.kol}</b> → <b style="color:var(--bad)">ใหม่ ${D.kpi_cool.new.kol}</b> · ชิ้นงานรีวิว <b>${D.kpi_cool.actual.review}</b>/${D.kpi_cool.new.review}</div></div>
-      <div class="panel-lite"><h3 class="sub" style="margin-top:0">KPI ใหม่ vs Actual (% Achieve)</h3><div class="chartbox sm"><canvas id="exKpiCool"></canvas></div></div>
+      <div><h3 class="sub" style="margin-top:0">${t('KPI เก่า / ใหม่ / Actual','KPI Original / Revised / Actual')}</h3>${kpiTriTable(D.kpi_cool,true)}
+        <div class="kolnote">${t(`No. KOL: <b>เก่า ${D.kpi_cool.old.kol}</b> → <b style="color:var(--bad)">ใหม่ ${D.kpi_cool.new.kol}</b> · ชิ้นงานรีวิว <b>${D.kpi_cool.actual.review}</b>/${D.kpi_cool.new.review}`,`No. KOL: <b>Original ${D.kpi_cool.old.kol}</b> → <b style="color:var(--bad)">Revised ${D.kpi_cool.new.kol}</b> · Review pieces <b>${D.kpi_cool.actual.review}</b>/${D.kpi_cool.new.review}`)}</div></div>
+      <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('KPI ใหม่ vs Actual (% Achieve)','KPI Revised vs Actual (% Achieve)')}</h3><div class="chartbox sm"><canvas id="exKpiCool"></canvas></div></div>
     </div></div>`;
   /* NPD block */
   h+=`<div class="kpiblock"><span class="kpi-tag kt-npd">NPD KOL</span>
     <div class="g2 kpi2col">
-      <div><h3 class="sub" style="margin-top:0">KPI เก่า / ใหม่ / Actual</h3>${kpiTriTable(D.kpi_npd,false)}
-        <div class="kolnote">No. KOL: <b>เก่า ${D.kpi_npd.old.kol}</b> → <b style="color:var(--blue)">ใหม่ ${D.kpi_npd.new.kol}</b> · KOL ส่งมอบครบ ${npdD.length} ราย</div></div>
-      <div class="panel-lite"><h3 class="sub" style="margin-top:0">KPI ใหม่ vs Actual (% Achieve)</h3><div class="chartbox sm"><canvas id="exKpiNpd"></canvas></div></div>
+      <div><h3 class="sub" style="margin-top:0">${t('KPI เก่า / ใหม่ / Actual','KPI Original / Revised / Actual')}</h3>${kpiTriTable(D.kpi_npd,false)}
+        <div class="kolnote">${t(`No. KOL: <b>เก่า ${D.kpi_npd.old.kol}</b> → <b style="color:var(--blue)">ใหม่ ${D.kpi_npd.new.kol}</b> · KOL ส่งมอบครบ ${npdD.length} ราย`,`No. KOL: <b>Original ${D.kpi_npd.old.kol}</b> → <b style="color:var(--blue)">Revised ${D.kpi_npd.new.kol}</b> · ${npdD.length} KOLs fully delivered`)}</div></div>
+      <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('KPI ใหม่ vs Actual (% Achieve)','KPI Revised vs Actual (% Achieve)')}</h3><div class="chartbox sm"><canvas id="exKpiNpd"></canvas></div></div>
     </div></div>`;
-  h+=insight('good','✅ NPD Launch ทำเกินเป้าทุก metric — Cool ยังต้องตามเก็บ',
+  h+=insight('good',t('✅ NPD Launch ทำเกินเป้าทุก metric — Cool ยังต้องตามเก็บ','✅ NPD Launch exceeded every metric — Cool still has catching up'),
     fw([
-      ['What Happened','NPD Actual ทะลุเป้าใหม่ทุกตัว (Impression 105%, View 104%, Engagement 104%) ส่วน Cool ทำได้ ~77% ของเป้าใหม่เพราะงานค้าง'],
-      ['Why It Happened','NPD จำกัด KOL คุณภาพ 13 รายที่ deliver ครบ — Cool กระจาย 29 KOL/42 ชิ้นแต่ส่งจริง 31'],
-      ['Business Impact','พอร์ต H1 มี campaign ที่ over-deliver (NPD) ช่วยชดเชย under-delivery ของ Cool ในภาพรวม'],
-      ['Recommendation','ใช้โมเดล NPD (focused roster + event hook) เป็น template และลดจำนวน Barter ที่ส่งมอบไม่แน่นอน'],
-      ['Expected Impact','ลด KOL ที่ไม่ deliver จะยก rate การบรรลุเป้า Cool จาก 77% → 90%+ ใน H2']
+      ['What Happened',t('NPD Actual ทะลุเป้าใหม่ทุกตัว (Impression 105%, View 104%, Engagement 104%) ส่วน Cool ทำได้ ~77% ของเป้าใหม่เพราะงานค้าง','NPD Actual exceeded every revised target (Impression 105%, View 104%, Engagement 104%), while Cool reached ~77% of its revised target due to pending pieces')],
+      ['Why It Happened',t('NPD จำกัด KOL คุณภาพ 13 รายที่ deliver ครบ — Cool กระจาย 29 KOL/42 ชิ้นแต่ส่งจริง 31','NPD focused on 13 quality KOLs that fully delivered — Cool spread across 29 KOLs/42 pieces but delivered 31')],
+      ['Business Impact',t('พอร์ต H1 มี campaign ที่ over-deliver (NPD) ช่วยชดเชย under-delivery ของ Cool ในภาพรวม','The H1 portfolio has an over-delivering campaign (NPD) that offsets Cool\'s under-delivery overall')],
+      ['Recommendation',t('ใช้โมเดล NPD (focused roster + event hook) เป็น template และลดจำนวน Barter ที่ส่งมอบไม่แน่นอน','Use the NPD model (focused roster + event hook) as a template and reduce unreliable Barter deliverables')],
+      ['Expected Impact',t('ลด KOL ที่ไม่ deliver จะยก rate การบรรลุเป้า Cool จาก 77% → 90%+ ใน H2','Cutting non-delivering KOLs would lift Cool\'s target-achievement rate from 77% → 90%+ in H2')]
     ]));
   h+='</section>';
 
@@ -716,7 +732,7 @@ RENDER.mandala = (pg)=>{
     {n:'05',t:'Results & Forward Look',s:t('ผลลัพธ์และทิศทางครึ่งปีหลัง','Results & second-half direction'),imgs:[10,11]},
   ];
   let h=sec('m-story','📖','Mandala · Brand Storytelling',t('เรียงเล่าเรื่องด้วยภาพใหญ่ แบ่งตามหัวข้อจากต้นน้ำสู่ผลลัพธ์','A visual narrative, chaptered from upstream to outcomes'),'purple');
-  h+=`<p style="font-size:13px;color:var(--ink2);line-height:1.7;margin-bottom:8px">ชุดภาพ Mandala วางโครงเรื่องของแบรนด์ TCL ตลอด H1 — ตั้งแต่ตำแหน่งแบรนด์ในตลาด ระบบสินค้า อินไซต์ผู้บริโภค กลยุทธ์ KOL จนถึงผลลัพธ์ อ่านไล่จากบนลงล่างเป็น 5 บท</p>`;
+  h+=`<p style="font-size:13px;color:var(--ink2);line-height:1.7;margin-bottom:8px">${t('ชุดภาพ Mandala วางโครงเรื่องของแบรนด์ TCL ตลอด H1 — ตั้งแต่ตำแหน่งแบรนด์ในตลาด ระบบสินค้า อินไซต์ผู้บริโภค กลยุทธ์ KOL จนถึงผลลัพธ์ อ่านไล่จากบนลงล่างเป็น 5 บท','The Mandala series frames the TCL brand story across H1 — from market positioning, product ecosystem and consumer insight to KOL strategy and results. Read top to bottom across 5 chapters.')}</p>`;
   h+='</section>';
   chapters.forEach(ch=>{
     h+=`<section class="sec" style="scroll-margin-top:84px"><div class="mh"><div class="mn">${ch.n}</div><div><h3>${ch.t}</h3><div class="ms">${ch.s}</div></div></div>`;
@@ -729,22 +745,22 @@ RENDER.mandala = (pg)=>{
   const audAll=audience([...D.cool,...D.npd]);
   h+=sec('m-market','📈',t('วิเคราะห์ตลาด · Market Analysis','Market Analysis'),t('ตีความตลาดจากข้อมูล performance จริงของ 2 แคมเปญ','Market read from real performance data of both campaigns'),'');
   h+=`<div class="g2">
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">โครงสร้างผู้ชมตลาด (รวม H1)</h3><div class="chartbox sm"><canvas id="mktAge"></canvas></div><div class="note">ถ่วงน้ำหนักด้วยยอด View จริงของทุกชิ้นงาน</div></div>
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">Demand Signal ต่อกลุ่มสินค้า (View)</h3><div class="chartbox sm"><canvas id="mktProd"></canvas></div></div>
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('โครงสร้างผู้ชมตลาด (รวม H1)','Market Audience Structure (H1 Total)')}</h3><div class="chartbox sm"><canvas id="mktAge"></canvas></div><div class="note">${t('ถ่วงน้ำหนักด้วยยอด View จริงของทุกชิ้นงาน','Weighted by actual View of every piece')}</div></div>
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('Demand Signal ต่อกลุ่มสินค้า (View)','Demand Signal by Product Group (View)')}</h3><div class="chartbox sm"><canvas id="mktProd"></canvas></div></div>
   </div>`;
-  h+=insight('info','🧭 Market Read — ฐานลูกค้าหลักอยู่ที่กลุ่มทำงานตอนต้น (25-44)',
+  h+=insight('info',t('🧭 Market Read — ฐานลูกค้าหลักอยู่ที่กลุ่มทำงานตอนต้น (25-44)','🧭 Market Read — core base is the early-career working group (25-44)'),
     fw([
-      ['What Happened',`สัดส่วนผู้ชมกระจุกที่ช่วงอายุ 25-34 (${PC1(audAll.ages[1])}) และ 35-44 (${PC1(audAll.ages[2])}) รวมเกินครึ่งของฐาน`],
-      ['Why It Happened','สินค้าแอร์/เครื่องใช้ไฟฟ้าในบ้านเป็น consideration purchase ของกลุ่มที่มีกำลังซื้อและกำลังตั้งถิ่นฐาน (first home / upgrade)'],
-      ['Business Impact','สื่อสารควรเน้น value-for-money + ฟีเจอร์ประหยัดไฟ/เงียบ ที่ตรง pain ของกลุ่ม working-family มากกว่าจับ Gen Z'],
-      ['Recommendation','ลงน้ำหนัก budget KOL ในสาย home/lifestyle/รีวิวเครื่องใช้ไฟฟ้า และทำ retargeting ads ไปยังกลุ่ม 25-44'],
-      ['Expected Impact','การ align audience-product คาดยก conversion intent และลด CPV โดยรวมในแคมเปญ H2']
+      ['What Happened',t(`สัดส่วนผู้ชมกระจุกที่ช่วงอายุ 25-34 (${PC1(audAll.ages[1])}) และ 35-44 (${PC1(audAll.ages[2])}) รวมเกินครึ่งของฐาน`,`Audience concentrates in ages 25-34 (${PC1(audAll.ages[1])}) and 35-44 (${PC1(audAll.ages[2])}), together over half the base`)],
+      ['Why It Happened',t('สินค้าแอร์/เครื่องใช้ไฟฟ้าในบ้านเป็น consideration purchase ของกลุ่มที่มีกำลังซื้อและกำลังตั้งถิ่นฐาน (first home / upgrade)','Air-con/home appliances are a consideration purchase for buyers with spending power who are settling down (first home / upgrade)')],
+      ['Business Impact',t('สื่อสารควรเน้น value-for-money + ฟีเจอร์ประหยัดไฟ/เงียบ ที่ตรง pain ของกลุ่ม working-family มากกว่าจับ Gen Z','Messaging should emphasise value-for-money + energy-saving/quiet features that hit working-family pain points, rather than chasing Gen Z')],
+      ['Recommendation',t('ลงน้ำหนัก budget KOL ในสาย home/lifestyle/รีวิวเครื่องใช้ไฟฟ้า และทำ retargeting ads ไปยังกลุ่ม 25-44','Weight KOL budget toward home/lifestyle/appliance-review creators and run retargeting ads to the 25-44 group')],
+      ['Expected Impact',t('การ align audience-product คาดยก conversion intent และลด CPV โดยรวมในแคมเปญ H2','Aligning audience-product should lift conversion intent and lower overall CPV in H2 campaigns')]
     ]));
-  h+=`<div class="legend"><span><i style="background:var(--cool)"></i>Cool — เน้น reach/volume</span><span><i style="background:var(--blue)"></i>NPD — เน้น ER/efficiency</span></div>`;
+  h+=`<div class="legend"><span><i style="background:var(--cool)"></i>${t('Cool — เน้น reach/volume','Cool — reach/volume focus')}</span><span><i style="background:var(--blue)"></i>${t('NPD — เน้น ER/efficiency','NPD — ER/efficiency focus')}</span></div>`;
   h+='</section>';
 
   pg.innerHTML=h;
-  mkChart('mktAge',{type:'bar',data:{labels:['18-24','25-34','35-44','45-54','55+'],datasets:[{label:'% ผู้ชม',data:audAll.ages.map(x=>+(x*100).toFixed(1)),backgroundColor:CO.purple,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
+  mkChart('mktAge',{type:'bar',data:{labels:['18-24','25-34','35-44','45-54','55+'],datasets:[{label:t('% ผู้ชม','% Audience'),data:audAll.ages.map(x=>+(x*100).toFixed(1)),backgroundColor:CO.purple,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
   const pm={}; D.cool.filter(isDone).concat(D.npd.filter(isDone)).forEach(r=>{const p=prodName(r.product); pm[p]=(pm[p]||0)+r.view;});
   const pk=Object.keys(pm).sort((a,b)=>pm[b]-pm[a]);
   mkChart('mktProd',{type:'bar',data:{labels:pk,datasets:[{label:'View',data:pk.map(k=>pm[k]),backgroundColor:[CO.cool,CO.good,CO.accent,CO.warn,CO.purple],borderRadius:6}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>NFc(v)}}}}});
@@ -780,7 +796,7 @@ function renderCampaign(pg, rows, kpi, meta){
   pkeys.forEach(p=>{ const o=pm[p]; const key=prodImgKey(p); const img=key&&D.prod_imgs[key]?D.prod_imgs[key]:null;
     h+=`<div class="pcard${img?'':' noimg'}">${img?`<div class="pimg"><img src="${img}" alt="${esc(p)}"></div>`:''}
       <div class="pbody"><h4>${esc(p)}</h4><div class="pstat">
-        <div class="s"><b>${NFc(o.view)}</b><span>View · ${o.n} ชิ้น</span></div>
+        <div class="s"><b>${NFc(o.view)}</b><span>View · ${o.n} ${t('ชิ้น','pcs')}</span></div>
         <div class="s"><b>${NFc(o.eng)}</b><span>Engagement</span></div>
         <div class="s"><b>${NFc(o.reach)}</b><span>Reach</span></div>
         <div class="s"><b>${PC(o.er)}</b><span>ER</span></div>
@@ -792,14 +808,14 @@ function renderCampaign(pg, rows, kpi, meta){
   const withRev = kpi.new.review!=null;
   h+=sec('p-kpi','🎯','KPI vs Actual · '+meta.short,t('เป้า KPI ใหม่ เทียบผลจริง (Actual) — % Achieve รายตัวชี้วัด','Revised KPI targets vs Actual — % Achieve per metric'),meta.cls);
   h+=`<div class="g2 kpi2col">
-    <div><h3 class="sub" style="margin-top:0">KPI เก่า / ใหม่ / Actual</h3>${kpiTriTable(kpi,withRev)}
-      <div class="kolnote">No. KOL: <b>เก่า ${kpi.old.kol}</b> → <b style="color:${meta.color==="cool"?"var(--cool)":"var(--blue)"}">ใหม่ ${kpi.new.kol}</b>${withRev?` · ชิ้นงานรีวิว <b>${kpi.actual.review}</b>/${kpi.new.review}`:` · ส่งมอบ ${done.length} ราย`}</div></div>
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">KPI ใหม่ vs Actual (% Achieve)</h3><div class="chartbox"><canvas id="cpKpiVs"></canvas></div></div>
+    <div><h3 class="sub" style="margin-top:0">${t('KPI เก่า / ใหม่ / Actual','KPI Original / Revised / Actual')}</h3>${kpiTriTable(kpi,withRev)}
+      <div class="kolnote">No. KOL: <b>${t('เก่า','Original')} ${kpi.old.kol}</b> → <b style="color:${meta.color==="cool"?"var(--cool)":"var(--blue)"}">${t('ใหม่','Revised')} ${kpi.new.kol}</b>${withRev?` · ${t('ชิ้นงานรีวิว','Review pieces')} <b>${kpi.actual.review}</b>/${kpi.new.review}`:` · ${t('ส่งมอบ','Delivered')} ${done.length} ${t('ราย','KOLs')}`}</div></div>
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('KPI ใหม่ vs Actual (% Achieve)','KPI Revised vs Actual (% Achieve)')}</h3><div class="chartbox"><canvas id="cpKpiVs"></canvas></div></div>
   </div>`;
   const kAch=['impression','view','reach','eng'].map(k=>{const nw=kpi.new[k]||0;return nw?(kpi.actual[k]/nw):0;});
   const over=kAch.filter(p=>p>=1).length;
-  h+=insight(over>=3?'good':'warn','📊 บรรลุเป้าใหม่ '+over+'/4 ตัวชี้วัดหลัก',
-    `เทียบ KPI ใหม่: Impression ${PC1(kAch[0])} · View ${PC1(kAch[1])} · Reach ${PC1(kAch[2])} · Engagement ${PC1(kAch[3])}. ${over>=3?'ผลจริงเหนือกว่าหรือเท่าเป้าที่ปรับใหม่เกือบทุกตัว สะท้อนการ deliver ที่แข็งแรง':'ผลจริงยังต่ำกว่าเป้าใหม่ในบางตัว — ส่วนต่างหลักมาจากชิ้นงานที่ยังส่งไม่ครบ'}`);
+  h+=insight(over>=3?'good':'warn',t('📊 บรรลุเป้าใหม่ ','📊 Achieved ')+over+t('/4 ตัวชี้วัดหลัก','/4 key metrics'),
+    `${t('เทียบ KPI ใหม่:','vs Revised KPI:')} Impression ${PC1(kAch[0])} · View ${PC1(kAch[1])} · Reach ${PC1(kAch[2])} · Engagement ${PC1(kAch[3])}. ${over>=3?t('ผลจริงเหนือกว่าหรือเท่าเป้าที่ปรับใหม่เกือบทุกตัว สะท้อนการ deliver ที่แข็งแรง','Actual met or exceeded the revised target on nearly every metric, reflecting strong delivery'):t('ผลจริงยังต่ำกว่าเป้าใหม่ในบางตัว — ส่วนต่างหลักมาจากชิ้นงานที่ยังส่งไม่ครบ','Actual is still below the revised target on some metrics — the main gap comes from undelivered pieces')}`);
   h+='</section>';
 
   /* ---- p-cost · Cost per Metric vs Benchmark (this campaign) ---- */
@@ -832,31 +848,31 @@ function renderCampaign(pg, rows, kpi, meta){
 
   /* ---- p-product · by dimension ---- */
   h+=sec('p-product','🧩',t('โปรดักส์ในแคมเปญ → ผลงานแยกตามมิติ','Products → Performance by Dimension'),t('เทียบ View · Engagement · Reach · ER ของแต่ละสินค้า','Compare View · Engagement · Reach · ER by product'),meta.cls);
-  h+=`<div class="g2"><div class="panel-lite"><h3 class="sub" style="margin-top:0">View vs Engagement ต่อสินค้า</h3><div class="chartbox"><canvas id="cpProd1"></canvas></div></div>
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">ER เฉลี่ยต่อสินค้า</h3><div class="chartbox"><canvas id="cpProd2"></canvas></div></div></div>`;
-  h+=`<div class="tbl-wrap" style="margin-top:16px"><table class="matrix"><thead><tr><th>Product</th><th>ชิ้นงาน</th><th>Impression</th><th>View</th><th>Reach</th><th>Engagement</th><th>ER</th></tr></thead><tbody>`;
+  h+=`<div class="g2"><div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('View vs Engagement ต่อสินค้า','View vs Engagement by Product')}</h3><div class="chartbox"><canvas id="cpProd1"></canvas></div></div>
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('ER เฉลี่ยต่อสินค้า','Average ER by Product')}</h3><div class="chartbox"><canvas id="cpProd2"></canvas></div></div></div>`;
+  h+=`<div class="tbl-wrap" style="margin-top:16px"><table class="matrix"><thead><tr><th>Product</th><th>${t('ชิ้นงาน','Pieces')}</th><th>Impression</th><th>View</th><th>Reach</th><th>Engagement</th><th>ER</th></tr></thead><tbody>`;
   pkeys.forEach(p=>{const o=pm[p]; h+=`<tr><td><b>${esc(p)}</b></td><td>${o.n}</td><td>${NF(o.imp)}</td><td>${NF(o.view)}</td><td>${NF(o.reach)}</td><td>${NF(o.eng)}</td><td>${PC(o.er)}</td></tr>`;});
-  h+=`</tbody><tfoot><tr><td>รวม</td><td>${done.length}</td><td>${NF(a.imp)}</td><td>${NF(a.view)}</td><td>${NF(a.reach)}</td><td>${NF(a.eng)}</td><td>${PC(a.er)}</td></tr></tfoot></table></div>`;
+  h+=`</tbody><tfoot><tr><td>${t('รวม','Total')}</td><td>${done.length}</td><td>${NF(a.imp)}</td><td>${NF(a.view)}</td><td>${NF(a.reach)}</td><td>${NF(a.eng)}</td><td>${PC(a.er)}</td></tr></tfoot></table></div>`;
   const topP=pkeys[0], topPer=[...pkeys].sort((x,y)=>pm[y].er-pm[x].er)[0];
-  h+=insight('info','🔍 '+topP+' นำด้าน Volume — '+topPer+' นำด้านคุณภาพ ER',
-    `<b>${esc(topP)}</b> ทำ View สูงสุด (${NFc(pm[topP].view)}) ขณะที่ <b>${esc(topPer)}</b> ได้ ER ดีที่สุด (${PC(pm[topPer].er)}). แนะนำดัน <b>${esc(topP)}</b> เป็น awareness hero และใช้ <b>${esc(topPer)}</b> เป็น conversion content ที่เน้น depth ของ engagement.`);
+  h+=insight('info','🔍 '+topP+t(' นำด้าน Volume — ',' leads on Volume — ')+topPer+t(' นำด้านคุณภาพ ER',' leads on ER quality'),
+    t(`<b>${esc(topP)}</b> ทำ View สูงสุด (${NFc(pm[topP].view)}) ขณะที่ <b>${esc(topPer)}</b> ได้ ER ดีที่สุด (${PC(pm[topPer].er)}). แนะนำดัน <b>${esc(topP)}</b> เป็น awareness hero และใช้ <b>${esc(topPer)}</b> เป็น conversion content ที่เน้น depth ของ engagement.`,`<b>${esc(topP)}</b> drove the highest View (${NFc(pm[topP].view)}), while <b>${esc(topPer)}</b> achieved the best ER (${PC(pm[topPer].er)}). Push <b>${esc(topP)}</b> as the awareness hero and use <b>${esc(topPer)}</b> as conversion content focused on engagement depth.`));
   h+='</section>';
 
   /* ---- p-tier ---- */
   h+=sec('p-tier','🏅',t('Performance by Product · ผลงานแยกตาม Tier KOL','Performance by KOL Tier'),t('ประสิทธิภาพแยกตามระดับ KOL — Mega / Macro / Micro','Performance by KOL tier — Mega / Macro / Micro'),meta.cls);
-  h+=`<div class="g2"><div class="panel-lite"><h3 class="sub" style="margin-top:0">View & ชิ้นงานต่อ Tier</h3><div class="chartbox sm"><canvas id="cpTier1"></canvas></div></div>
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">ER เฉลี่ยต่อ Tier</h3><div class="chartbox sm"><canvas id="cpTier2"></canvas></div></div></div>`;
-  h+=`<div class="tbl-wrap" style="margin-top:16px"><table class="matrix"><thead><tr><th>Tier</th><th>ชิ้นงาน</th><th>View</th><th>Engagement</th><th>ER</th><th>Avg View/ชิ้น</th></tr></thead><tbody>`;
+  h+=`<div class="g2"><div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('View & ชิ้นงานต่อ Tier','View & Pieces by Tier')}</h3><div class="chartbox sm"><canvas id="cpTier1"></canvas></div></div>
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('ER เฉลี่ยต่อ Tier','Average ER by Tier')}</h3><div class="chartbox sm"><canvas id="cpTier2"></canvas></div></div></div>`;
+  h+=`<div class="tbl-wrap" style="margin-top:16px"><table class="matrix"><thead><tr><th>Tier</th><th>${t('ชิ้นงาน','Pieces')}</th><th>View</th><th>Engagement</th><th>ER</th><th>${t('Avg View/ชิ้น','Avg View/pc')}</th></tr></thead><tbody>`;
   tiers.forEach(t=>{const o=tm[t]; if(!o.n)return; h+=`<tr><td>${tierBadge(t)}</td><td>${o.n}</td><td>${NF(o.view)}</td><td>${NF(o.eng)}</td><td>${PC(o.er)}</td><td>${NFc(o.view/o.n)}</td></tr>`;});
   h+=`</tbody></table></div>`;
   const megaShare=tm.Mega.view/a.view;
-  h+=insight(tm.Macro.er>tm.Mega.er?'warn':'good','📊 Mega ครอง '+PC1(megaShare)+' ของ View ทั้งแคมเปญ',
+  h+=insight(tm.Macro.er>tm.Mega.er?'warn':'good',t('📊 Mega ครอง ','📊 Mega holds ')+PC1(megaShare)+t(' ของ View ทั้งแคมเปญ',' of all campaign View'),
     fw([
-      ['What Happened',`Mega tier ทำ View ${NFc(tm.Mega.view)} (${PC1(megaShare)} ของทั้งหมด) แต่ ER อยู่ที่ ${PC(tm.Mega.er)} เทียบ Macro ${PC(tm.Macro.er)}`],
-      ['Why It Happened','Mega ให้ reach กว้างแต่ audience หลวมกว่า — Macro มีฐานแฟนเหนียวแน่น ER จึง'+(tm.Macro.er>tm.Mega.er?'สูงกว่า':'ใกล้เคียง')],
-      ['Business Impact','พึ่ง Mega มากเกินไปทำให้ต้นทุนต่อ engagement สูง แม้ view เยอะ'],
-      ['Recommendation','ผสม portfolio: Mega 1-2 รายเป็น reach anchor + เพิ่ม Macro/Micro ที่ ER ดีเพื่อ depth และคุม CPE'],
-      ['Expected Impact','rebalance คาดลด blended CPE และเพิ่ม quality engagement ~10-15%']
+      ['What Happened',t(`Mega tier ทำ View ${NFc(tm.Mega.view)} (${PC1(megaShare)} ของทั้งหมด) แต่ ER อยู่ที่ ${PC(tm.Mega.er)} เทียบ Macro ${PC(tm.Macro.er)}`,`Mega tier drove View ${NFc(tm.Mega.view)} (${PC1(megaShare)} of total) but ER sits at ${PC(tm.Mega.er)} vs Macro ${PC(tm.Macro.er)}`)],
+      ['Why It Happened',t('Mega ให้ reach กว้างแต่ audience หลวมกว่า — Macro มีฐานแฟนเหนียวแน่น ER จึง','Mega gives broad reach but a looser audience — Macro has a tighter fan base, so ER is ')+(tm.Macro.er>tm.Mega.er?t('สูงกว่า','higher'):t('ใกล้เคียง','comparable'))],
+      ['Business Impact',t('พึ่ง Mega มากเกินไปทำให้ต้นทุนต่อ engagement สูง แม้ view เยอะ','Over-reliance on Mega raises cost per engagement despite high view')],
+      ['Recommendation',t('ผสม portfolio: Mega 1-2 รายเป็น reach anchor + เพิ่ม Macro/Micro ที่ ER ดีเพื่อ depth และคุม CPE','Mix the portfolio: 1-2 Mega as reach anchors + more high-ER Macro/Micro for depth and CPE control')],
+      ['Expected Impact',t('rebalance คาดลด blended CPE และเพิ่ม quality engagement ~10-15%','Rebalancing should lower blended CPE and add ~10-15% quality engagement')]
     ]));
   h+='</section>';
 
@@ -874,11 +890,11 @@ function renderCampaign(pg, rows, kpi, meta){
 
   /* ---- p-aud ---- */
   h+=sec('p-aud','👥',t('โปรไฟล์ผู้ชม · เพศ / อายุ','Audience Profile · Gender / Age'),t('โครงสร้างผู้ชมถ่วงน้ำหนักด้วยยอด View','Audience structure weighted by views'),meta.cls);
-  h+=`<div class="g2"><div class="panel-lite"><h3 class="sub" style="margin-top:0">สัดส่วนเพศ</h3><div class="chartbox sm"><canvas id="cpGender"></canvas></div></div>
-    <div class="panel-lite"><h3 class="sub" style="margin-top:0">ช่วงอายุ</h3><div class="chartbox sm"><canvas id="cpAge"></canvas></div></div></div>`;
+  h+=`<div class="g2"><div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('สัดส่วนเพศ','Gender Split')}</h3><div class="chartbox sm"><canvas id="cpGender"></canvas></div></div>
+    <div class="panel-lite"><h3 class="sub" style="margin-top:0">${t('ช่วงอายุ','Age Range')}</h3><div class="chartbox sm"><canvas id="cpAge"></canvas></div></div></div>`;
   const domAge=['18-24','25-34','35-44','45-54','55+'][aud.ages.indexOf(Math.max(...aud.ages))];
-  h+=insight('info','🎯 ผู้ชมหลัก: '+(aud.f>aud.m?'หญิง':'ชาย')+' '+PC1(Math.max(aud.f,aud.m))+' · อายุเด่น '+domAge,
-    `กลุ่มเด่นคือเพศ${aud.f>aud.m?'หญิง':'ชาย'} (${PC1(Math.max(aud.f,aud.m))}) ช่วงอายุ ${domAge}. คอนเทนต์และ ads targeting ควรล็อกกลุ่มนี้เป็นแกน และทดสอบ messaging เฉพาะกลุ่มรองเพื่อขยายฐาน.`);
+  h+=insight('info',t('🎯 ผู้ชมหลัก: ','🎯 Core audience: ')+(aud.f>aud.m?t('หญิง','Female'):t('ชาย','Male'))+' '+PC1(Math.max(aud.f,aud.m))+t(' · อายุเด่น ',' · top age ')+domAge,
+    t(`กลุ่มเด่นคือเพศ${aud.f>aud.m?t('หญิง','Female'):t('ชาย','Male')} (${PC1(Math.max(aud.f,aud.m))}) ช่วงอายุ ${domAge}. คอนเทนต์และ ads targeting ควรล็อกกลุ่มนี้เป็นแกน และทดสอบ messaging เฉพาะกลุ่มรองเพื่อขยายฐาน.`,`The dominant group is ${aud.f>aud.m?t('หญิง','Female'):t('ชาย','Male')} (${PC1(Math.max(aud.f,aud.m))}), age ${domAge}. Content and ad targeting should anchor on this group and test messaging for secondary groups to expand the base.`));
   h+='</section>';
 
   /* ---- p-lineup ---- */
@@ -894,10 +910,10 @@ function renderCampaign(pg, rows, kpi, meta){
     const [ic,cc]=chIco(r.channel); const tier=(r.tier||'').trim();
     h+=`<div class="kol-acard">
       <div class="ac-top">
-        ${r.img?`<img class="ac-photo" src="${r.img}" alt="">`:`<div class="ac-photo-ph">${esc((r.account||'?').trim().charAt(0).toUpperCase())}</div>`}
+        ${r.img?`<img class="ac-photo" src="${r.img}" alt="">`:`<div class="ac-photo-ph">${esc((dispName(r.account)||'?').charAt(0).toUpperCase())}</div>`}
         <div class="ac-id">
-          <div class="ac-name" title="${esc(r.account.trim())}">${esc(r.account.trim())}</div>
-          <div class="ac-handle"><span class="chico" style="background:${cc}">${ic}</span><span>@${esc(r.account.trim())}</span> · ${NFc(r.follower)} · <span class="tp" style="background:${tcol(tier)}">${esc(tier||'—')}</span> <span class="tp" style="background:${campCol}">${campTag}</span></div>
+          <div class="ac-name" title="${esc(dispName(r.account))}">${esc(dispName(r.account))}</div>
+          <div class="ac-handle"><span class="chico" style="background:${cc}">${ic}</span><span>@${esc(dispName(r.account))}</span> · ${NFc(r.follower)} · <span class="tp" style="background:${tcol(tier)}">${esc(tier||'—')}</span> <span class="tp" style="background:${campCol}">${campTag}</span></div>
         </div>
         <div class="ac-er"><div class="l">ER</div><div class="v">${(r.er*100).toFixed(1)}%</div></div>
       </div>
@@ -918,10 +934,10 @@ function renderCampaign(pg, rows, kpi, meta){
   /* ---- p-detail ---- */
   h+=sec('p-detail','📋',t('Detail · ตารางวิเคราะห์รายบุคคล','Detail · Per-Person Analysis Table'),t('กรองและจัดเรียงตาม key metric ได้','Filter and sort by key metric'),meta.cls);
   h+=`<div class="filters">
-    <label>Tier</label><select id="fTier"><option value="">ทั้งหมด</option>${tiers.map(t=>`<option>${t}</option>`).join('')}</select>
-    <label>Channel</label><select id="fChan"><option value="">ทั้งหมด</option>${[...new Set(done.map(r=>r.channel.trim()))].map(c=>`<option>${esc(c)}</option>`).join('')}</select>
-    <label>Product</label><select id="fProd"><option value="">ทั้งหมด</option>${pkeys.map(p=>`<option>${esc(p)}</option>`).join('')}</select>
-    <input id="fSearch" placeholder="ค้นชื่อ KOL...">
+    <label>Tier</label><select id="fTier"><option value="">${t('ทั้งหมด','All')}</option>${tiers.map(t=>`<option>${t}</option>`).join('')}</select>
+    <label>Channel</label><select id="fChan"><option value="">${t('ทั้งหมด','All')}</option>${[...new Set(done.map(r=>r.channel.trim()))].map(c=>`<option>${esc(c)}</option>`).join('')}</select>
+    <label>Product</label><select id="fProd"><option value="">${t('ทั้งหมด','All')}</option>${pkeys.map(p=>`<option>${esc(p)}</option>`).join('')}</select>
+    <input id="fSearch" placeholder="${t('ค้นชื่อ KOL...','Search KOL name...')}">
     <span class="minib" id="detCount"></span></div>`;
   h+=`<div class="tbl-wrap"><table class="dt" id="detTable"><thead><tr>
     <th data-k="account">KOL</th><th data-k="channel">Channel</th><th data-k="tier">Tier</th><th data-k="product">Product</th>
@@ -942,26 +958,26 @@ function renderCampaign(pg, rows, kpi, meta){
   const aware=[...done].sort((x,y)=>y.reach-x.reach).filter(k=>k.er*100<avgER).slice(0,5);
   const fix=[...big].sort((x,y)=>x.er-y.er).slice(0,5);
   h+=`<div class="perf-overview">
-    <div class="po"><div class="pol">จำนวน KOL</div><div class="pov">${done.length}</div><div class="pos">ในแคมเปญนี้</div></div>
-    <div class="po"><div class="pol">ER เฉลี่ย</div><div class="pov">${avgER.toFixed(2)}%</div><div class="pos">ทั้ง pool</div></div>
-    <div class="po"><div class="pol">ดาวเด่นอันดับ 1</div><div class="pov" style="font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@${esc(top1.account.trim())}</div><div class="pos">${NFc(top1.impression)} impr</div></div>
-    <div class="po"><div class="pol">สัดส่วน Top 3</div><div class="pov">${top3share.toFixed(0)}%</div><div class="pos">ของ Impression</div></div>
+    <div class="po"><div class="pol">${t('จำนวน KOL','No. of KOLs')}</div><div class="pov">${done.length}</div><div class="pos">${t('ในแคมเปญนี้','in this campaign')}</div></div>
+    <div class="po"><div class="pol">${t('ER เฉลี่ย','Average ER')}</div><div class="pov">${avgER.toFixed(2)}%</div><div class="pos">${t('ทั้ง pool','whole pool')}</div></div>
+    <div class="po"><div class="pol">${t('ดาวเด่นอันดับ 1','#1 Star')}</div><div class="pov" style="font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@${esc(dispName(top1.account))}</div><div class="pos">${NFc(top1.impression)} impr</div></div>
+    <div class="po"><div class="pol">${t('สัดส่วน Top 3','Top 3 share')}</div><div class="pov">${top3share.toFixed(0)}%</div><div class="pos">${t('ของ Impression','of Impression')}</div></div>
   </div>`;
-  const ravatar=r=> r.img?`<img class="ravatar" src="${r.img}" alt="">`:`<div class="rinit">${esc((r.account||'?').trim().charAt(0).toUpperCase())}</div>`;
-  const prow=(r,i,statV,statL,badge,bcol)=>`<div class="perf-row"><span class="rank">${i+1}</span>${ravatar(r)}<div class="rinfo"><div class="rn">${esc(r.account.trim())}</div><div class="rm"><span class="tp" style="background:${tcol(r.tier)}">${esc((r.tier||'').trim())}</span> · ${esc((r.channel||'').trim())}</div></div>${badge?`<span class="rbadge" style="background:${bcol}">${badge}</span>`:''}<div class="rstat"><div class="rv">${statV}</div><div class="rl">${statL}</div></div></div>`;
+  const ravatar=r=> r.img?`<img class="ravatar" src="${r.img}" alt="">`:`<div class="rinit">${esc((dispName(r.account)||'?').charAt(0).toUpperCase())}</div>`;
+  const prow=(r,i,statV,statL,badge,bcol)=>`<div class="perf-row"><span class="rank">${i+1}</span>${ravatar(r)}<div class="rinfo"><div class="rn">${esc(dispName(r.account))}</div><div class="rm"><span class="tp" style="background:${tcol(r.tier)}">${esc((r.tier||'').trim())}</span> · ${esc((r.channel||'').trim())}</div></div>${badge?`<span class="rbadge" style="background:${bcol}">${badge}</span>`:''}<div class="rstat"><div class="rv">${statV}</div><div class="rl">${statL}</div></div></div>`;
   const grp=(cls,icon,title,sub,items,fn)=> items.length?`<div class="perf-group ${cls}"><div class="pgh">${icon} ${title}<span class="pgsub">${sub}</span></div>${items.map(fn).join('')}</div>`:'';
   h+=`<div class="perf-cols">`;
-  h+=grp('star','🏆','ดาวเด่น (Engagement สูงสุด)','Always-on',star,(r,i)=>prow(r,i,NFc(r.eng),'ENG','ER '+(r.er*100).toFixed(1)+'%','#b22a24'));
-  h+=grp('eff','💎','Efficiency เด่น (ER สูง ต้นทุนต่ำ)','คุ้ม ROI',(eff.length?eff:big.filter(k=>(k.tier||'').trim().toLowerCase()!=='mega').slice(0,5)),(r,i)=>prow(r,i,(r.er*100).toFixed(1)+'%','ER','','#0e8f4f'));
-  h+=grp('aware','📣','Awareness Driver (Reach กว้าง)','Top-of-funnel',(aware.length?aware:byImpr.slice(0,5)),(r,i)=>prow(r,i,NFc(r.reach),'REACH','','#1e6fb0'));
-  h+=grp('fix','⚠️','ต้องปรับ (ER ต่ำสุด)','ทบทวน CTA/Brief',fix,(r,i)=>prow(r,i,(r.er*100).toFixed(1)+'%','ER','','#c99000'));
+  h+=grp('star','🏆',t('ดาวเด่น (Engagement สูงสุด)','Stars (Top Engagement)'),'Always-on',star,(r,i)=>prow(r,i,NFc(r.eng),'ENG','ER '+(r.er*100).toFixed(1)+'%','#b22a24'));
+  h+=grp('eff','💎',t('Efficiency เด่น (ER สูง ต้นทุนต่ำ)','Efficiency (High ER, Low Cost)'),t('คุ้ม ROI','ROI-efficient'),(eff.length?eff:big.filter(k=>(k.tier||'').trim().toLowerCase()!=='mega').slice(0,5)),(r,i)=>prow(r,i,(r.er*100).toFixed(1)+'%','ER','','#0e8f4f'));
+  h+=grp('aware','📣',t('Awareness Driver (Reach กว้าง)','Awareness Driver (Broad Reach)'),'Top-of-funnel',(aware.length?aware:byImpr.slice(0,5)),(r,i)=>prow(r,i,NFc(r.reach),'REACH','','#1e6fb0'));
+  h+=grp('fix','⚠️',t('ต้องปรับ (ER ต่ำสุด)','Needs Fixing (Lowest ER)'),t('ทบทวน CTA/Brief','Review CTA/Brief'),fix,(r,i)=>prow(r,i,(r.er*100).toFixed(1)+'%','ER','','#c99000'));
   h+=`</div>`;
   const dtk=[];
-  dtk.push(`<b>@${esc(top1.account.trim())}</b> เป็น Powerhouse อันดับ 1 — สร้าง Impression ${NFc(top1.impression)} (${(top1.impression/totImpr*100).toFixed(0)}% ของทั้งหมด) ควรล็อกเป็น Always-on`);
-  if(eff.length) dtk.push(`เพิ่มน้ำหนักกลุ่ม Efficiency เช่น <b>@${esc(eff[0].account.trim())}</b> (ER ${(eff[0].er*100).toFixed(1)}%) — ได้ ER เทียบเท่า Mega แต่ต้นทุนถูกกว่า`);
-  if(fix.length) dtk.push(`ทบทวน Brief/CTA กับ <b>@${esc(fix[0].account.trim())}</b> (ER ${(fix[0].er*100).toFixed(1)}%) ก่อนต่อสัญญา`);
-  dtk.push(`Top 3 KOL กินสัดส่วน ${top3share.toFixed(0)}% ของ Impression — กระจายความเสี่ยงด้วยการเพิ่ม Mid-tier ที่ ER ดี`);
-  h+=`<div class="perf-takeaway"><h4>📌 สรุปเชิงกลยุทธ์ (Director Takeaway)</h4><ol>${dtk.map(t=>`<li>${t}</li>`).join('')}</ol></div>`;
+  dtk.push(t(`<b>@${esc(dispName(top1.account))}</b> เป็น Powerhouse อันดับ 1 — สร้าง Impression ${NFc(top1.impression)} (${(top1.impression/totImpr*100).toFixed(0)}% ของทั้งหมด) ควรล็อกเป็น Always-on`,`<b>@${esc(dispName(top1.account))}</b> is the #1 powerhouse — generating ${NFc(top1.impression)} Impression (${(top1.impression/totImpr*100).toFixed(0)}% of total); lock in as Always-on`));
+  if(eff.length) dtk.push(t(`เพิ่มน้ำหนักกลุ่ม Efficiency เช่น <b>@${esc(dispName(eff[0].account))}</b> (ER ${(eff[0].er*100).toFixed(1)}%) — ได้ ER เทียบเท่า Mega แต่ต้นทุนถูกกว่า`,`Increase weight on the Efficiency group, e.g. <b>@${esc(dispName(eff[0].account))}</b> (ER ${(eff[0].er*100).toFixed(1)}%) — Mega-level ER at lower cost`));
+  if(fix.length) dtk.push(t(`ทบทวน Brief/CTA กับ <b>@${esc(dispName(fix[0].account))}</b> (ER ${(fix[0].er*100).toFixed(1)}%) ก่อนต่อสัญญา`,`Review Brief/CTA with <b>@${esc(dispName(fix[0].account))}</b> (ER ${(fix[0].er*100).toFixed(1)}%) before renewing`));
+  dtk.push(t(`Top 3 KOL กินสัดส่วน ${top3share.toFixed(0)}% ของ Impression — กระจายความเสี่ยงด้วยการเพิ่ม Mid-tier ที่ ER ดี`,`Top 3 KOLs take ${top3share.toFixed(0)}% of Impression — diversify risk by adding high-ER mid-tier creators`));
+  h+=`<div class="perf-takeaway"><h4>${t('📌 สรุปเชิงกลยุทธ์ (Director Takeaway)','📌 Strategic Summary (Director Takeaway)')}</h4><ol>${dtk.map(t=>`<li>${t}</li>`).join('')}</ol></div>`;
   h+='</section>';
 
   /* ---- p-take ---- */
@@ -1002,11 +1018,11 @@ function renderCampaign(pg, rows, kpi, meta){
 /* top KOL helper table */
 function topKolTable(list,metric){
   let h=`<div class="tbl-wrap" style="margin-top:16px"><table class="dt"><thead><tr><th>#</th><th>KOL</th><th>Channel</th><th>Tier</th><th>View</th><th>Engagement</th><th>ER</th></tr></thead><tbody>`;
-  list.forEach((r,i)=>{ h+=`<tr><td style="font-weight:800;color:var(--mut)">${i+1}</td><td><div class="kname">${avatar(r)}<span class="kn">${esc(r.account.trim())}</span></div></td><td>${chanBadge(r.channel)}</td><td>${tierBadge(r.tier)}</td><td>${NF(r.view)}</td><td>${NF(r.eng)}</td><td>${PC(r.er)}</td></tr>`; });
+  list.forEach((r,i)=>{ h+=`<tr><td style="font-weight:800;color:var(--mut)">${i+1}</td><td><div class="kname">${avatar(r)}<span class="kn">${esc(dispName(r.account))}</span></div></td><td>${chanBadge(r.channel)}</td><td>${tierBadge(r.tier)}</td><td>${NF(r.view)}</td><td>${NF(r.eng)}</td><td>${PC(r.er)}</td></tr>`; });
   return h+'</tbody></table></div>';
 }
 function barKol(id,list,key,color,comp){
-  mkChart(id,{type:'bar',data:{labels:list.map(r=>r.account.trim().length>16?r.account.trim().slice(0,15)+'…':r.account.trim()),datasets:[{label:comp?'Composite':key,data:list.map(r=>comp?+(r[key]*100).toFixed(1):r[key]),backgroundColor:color,borderRadius:5}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>comp?v:NFc(v)}}}}});
+  mkChart(id,{type:'bar',data:{labels:list.map(r=>(d=>d.length>16?d.slice(0,15)+'…':d)(dispName(r.account))),datasets:[{label:comp?'Composite':key,data:list.map(r=>comp?+(r[key]*100).toFixed(1):r[key]),backgroundColor:color,borderRadius:5}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>comp?v:NFc(v)}}}}});
 }
 
 /* detail filter/sort */
@@ -1017,8 +1033,8 @@ function initDetail(rows,pkeys,tiers){
   function draw(){
     let r=rows.filter(x=>(!fT.value||x.tier.trim().toLowerCase()===fT.value.toLowerCase())&&(!fC.value||x.channel.trim()===fC.value)&&(!fP.value||prodName(x.product)===fP.value)&&(!fS.value||x.account.toLowerCase().includes(fS.value.toLowerCase())));
     r.sort((a,b)=>{let va=a[sortK],vb=b[sortK]; if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase(); return sortDir*(va<vb?-1:va>vb?1:0);} return sortDir*(va-vb);});
-    body.innerHTML=r.map(x=>`<tr><td><div class="kname">${avatar(x)}<span class="kn">${esc(x.account.trim())}</span></div></td><td>${chanBadge(x.channel)}</td><td>${tierBadge(x.tier)}</td><td>${esc(prodName(x.product))}</td><td>${NF(x.follower)}</td><td>${NF(x.impression)}</td><td>${NF(x.view)}</td><td>${NF(x.reach)}</td><td>${NF(x.eng)}</td><td>${PC(x.er)}</td></tr>`).join('');
-    document.getElementById('detCount').textContent=r.length+' รายการ';
+    body.innerHTML=r.map(x=>`<tr><td><div class="kname">${avatar(x)}<span class="kn">${esc(dispName(x.account))}</span></div></td><td>${chanBadge(x.channel)}</td><td>${tierBadge(x.tier)}</td><td>${esc(prodName(x.product))}</td><td>${NF(x.follower)}</td><td>${NF(x.impression)}</td><td>${NF(x.view)}</td><td>${NF(x.reach)}</td><td>${NF(x.eng)}</td><td>${PC(x.er)}</td></tr>`).join('');
+    document.getElementById('detCount').textContent=r.length+t(' รายการ',' items');
   }
   document.querySelectorAll('#detTable th').forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(sortK===k)sortDir*=-1; else{sortK=k;sortDir=(k==='account'||k==='channel'||k==='tier'||k==='product')?1:-1;} document.querySelectorAll('#detTable th').forEach(t=>t.classList.remove('sorted','sortedup')); th.classList.add(sortDir<0?'sorted':'sortedup'); draw();});
   [fT,fC,fP].forEach(f=>f.onchange=draw); fS.oninput=draw;
@@ -1034,32 +1050,32 @@ RENDER.cool = (pg)=>{
     short:'Cool Campaign', cls:'cool', color:'cool',
     tagline:'TCL-Cool · Air Conditioner — VoxIN · BreezeIN Premium Series · Cassette',
     takeaways:`
-      <div class="tk t-good"><h4>✅ Do Good — ที่ได้ผล</h4><ul>
-        <li><b>BreezeIN Premium Series</b> ทำ View สูงสุดและ ER ดีที่สุดในกลุ่มหลัก — เป็น hero product ที่ KOL เล่าได้น่าสนใจ</li>
-        <li>Mega tier (โปรฮับ, รีวิวบอกต่อ, Jenny Arora) ดัน reach ระดับ 3M+ ต่อราย สร้างฐาน awareness แข็งแรง</li>
-        <li>ER เฉลี่ยรวม ${PC(aC.er)} ถือว่าดีต่อหมวดเครื่องใช้ไฟฟ้าที่เป็น considered purchase</li>
+      <div class="tk t-good"><h4>${t('✅ Do Good — ที่ได้ผล','✅ Do Good — What Worked')}</h4><ul>
+        <li>${t(`<b>BreezeIN Premium Series</b> ทำ View สูงสุดและ ER ดีที่สุดในกลุ่มหลัก — เป็น hero product ที่ KOL เล่าได้น่าสนใจ`,`<b>BreezeIN Premium Series</b> drove the highest View and best ER among core products — a hero product KOLs tell compellingly`)}</li>
+        <li>${t(`Mega tier (โปรฮับ, รีวิวบอกต่อ, Jenny Arora) ดัน reach ระดับ 3M+ ต่อราย สร้างฐาน awareness แข็งแรง`,`Mega tier (Prohub, Review-bok-tor, Jenny Arora) pushed reach of 3M+ each, building a strong awareness base`)}</li>
+        <li>${t(`ER เฉลี่ยรวม ${PC(aC.er)} ถือว่าดีต่อหมวดเครื่องใช้ไฟฟ้าที่เป็น considered purchase`,`Blended average ER ${PC(aC.er)} is solid for an appliance category that is a considered purchase`)}</li>
       </ul></div>
-      <div class="tk t-warn"><h4>⚠️ Do Better — ต้องปรับ</h4><ul>
-        <li><b>งานค้าง 11 ชิ้น</b> (Barter Macro + Review 2 ของ Mega) ทำให้ Impression actual ต่ำกว่าเป้าใหม่ ~23%</li>
-        <li>Cassette ได้ ER ต่ำสุด — โจทย์คือ angle คอนเทนต์ยังไม่ชัด ควร refresh messaging</li>
-        <li>พึ่ง Mega หนักเกินไป ดัน CPE สูง ควรเสริม Macro ที่ ER ดีเพื่อคุมต้นทุน</li>
+      <div class="tk t-warn"><h4>${t('⚠️ Do Better — ต้องปรับ','⚠️ Do Better — To Improve')}</h4><ul>
+        <li>${t(`<b>งานค้าง 11 ชิ้น</b> (Barter Macro + Review 2 ของ Mega) ทำให้ Impression actual ต่ำกว่าเป้าใหม่ ~23%`,`<b>11 pending pieces</b> (Barter Macro + Mega Review 2) kept actual Impression ~23% below the revised target`)}</li>
+        <li>${t(`Cassette ได้ ER ต่ำสุด — โจทย์คือ angle คอนเทนต์ยังไม่ชัด ควร refresh messaging`,`Cassette had the lowest ER — the issue is an unclear content angle; messaging should be refreshed`)}</li>
+        <li>${t(`พึ่ง Mega หนักเกินไป ดัน CPE สูง ควรเสริม Macro ที่ ER ดีเพื่อคุมต้นทุน`,`Over-reliance on Mega pushes CPE up; add high-ER Macro to control cost`)}</li>
       </ul></div>
-      <div class="tk t-next"><h4>🚀 Do Next — ต้องทดลอง H2</h4><ul>
-        <li>ล็อก Strategic Partner จาก composite Top 5 ทำสัญญายาวข้ามแคมเปญ</li>
-        <li>ทดสอบ Micro/Nano cluster (ER สูง ต้นทุนต่ำ) เพื่อขยาย long-tail reach</li>
-        <li>ต่อยอด KOL content ที่ ER ดีเป็น whitelisted ads (Spark Ads / Partnership Ads)</li>
+      <div class="tk t-next"><h4>${t('🚀 Do Next — ต้องทดลอง H2','🚀 Do Next — Test in H2')}</h4><ul>
+        <li>${t(`ล็อก Strategic Partner จาก composite Top 5 ทำสัญญายาวข้ามแคมเปญ`,`Lock Strategic Partners from the composite Top 5 with long, cross-campaign contracts`)}</li>
+        <li>${t(`ทดสอบ Micro/Nano cluster (ER สูง ต้นทุนต่ำ) เพื่อขยาย long-tail reach`,`Test a Micro/Nano cluster (high ER, low cost) to extend long-tail reach`)}</li>
+        <li>${t(`ต่อยอด KOL content ที่ ER ดีเป็น whitelisted ads (Spark Ads / Partnership Ads)`,`Extend high-ER KOL content into whitelisted ads (Spark Ads / Partnership Ads)`)}</li>
       </ul></div>
       <div class="tk t-bad"><h4>📌 Risk & Watch</h4><ul>
-        <li>ติดตามการส่งมอบ Barter ให้ครบก่อนปิด Q3 — มิฉะนั้นจะกลายเป็น budget ที่จมไม่เกิดผล</li>
-        <li>เฝ้าระวัง ER ของ Mega ที่มีแนวโน้มเจือจางเมื่อ reach โต ต้องคุม content quality</li>
+        <li>${t(`ติดตามการส่งมอบ Barter ให้ครบก่อนปิด Q3 — มิฉะนั้นจะกลายเป็น budget ที่จมไม่เกิดผล`,`Track full Barter delivery before closing Q3 — otherwise it becomes sunk budget with no result`)}</li>
+        <li>${t(`เฝ้าระวัง ER ของ Mega ที่มีแนวโน้มเจือจางเมื่อ reach โต ต้องคุม content quality`,`Watch Mega ER, which tends to dilute as reach grows; keep content quality in check`)}</li>
       </ul></div>`,
     content:`
       <div class="g3" style="margin-bottom:6px">
-        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">🎯 Content ที่ Work</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">รีวิวแบบ studio + demo เสียง/ลมจริง (VoxIN, BreezeIN) ทำ ER ดีกว่าการพูดสเปกอย่างเดียว — audience ตอบสนองกับ "before/after" ความเย็นและความเงียบ</p></div>
-        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">📈 ต่อยอด Paid Ads</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">นำคอนเทนต์ KOL ที่ ER เกิน 6% ไปทำ Spark/Partnership Ads ยิงกลุ่ม 25-44 + lookalike ของ engagers เพื่อ scale ผลแบบคุม CPV</p></div>
-        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">🔁 Always-on</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">ตั้ง creator content library หมุนเวียนช่วง pre-summer (peak demand แอร์) และผูก promo code ราย KOL เพื่อวัด conversion ตรง</p></div>
+        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">${t('🎯 Content ที่ Work','🎯 Content that Works')}</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">${t(`รีวิวแบบ studio + demo เสียง/ลมจริง (VoxIN, BreezeIN) ทำ ER ดีกว่าการพูดสเปกอย่างเดียว — audience ตอบสนองกับ "before/after" ความเย็นและความเงียบ`,`Studio reviews + real sound/airflow demos (VoxIN, BreezeIN) beat spec-talk alone on ER — audiences respond to "before/after" cooling and quietness`)}</p></div>
+        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">${t('📈 ต่อยอด Paid Ads','📈 Scale with Paid Ads')}</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">${t(`นำคอนเทนต์ KOL ที่ ER เกิน 6% ไปทำ Spark/Partnership Ads ยิงกลุ่ม 25-44 + lookalike ของ engagers เพื่อ scale ผลแบบคุม CPV`,`Take KOL content above 6% ER into Spark/Partnership Ads targeting the 25-44 group + lookalikes of engagers to scale results while controlling CPV`)}</p></div>
+        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">🔁 Always-on</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">${t(`ตั้ง creator content library หมุนเวียนช่วง pre-summer (peak demand แอร์) และผูก promo code ราย KOL เพื่อวัด conversion ตรง`,`Set up a rotating creator content library for pre-summer (peak AC demand) and tie per-KOL promo codes to measure conversion directly`)}</p></div>
       </div>
-      ${insight('info','💡 Content → Conversion Bridge','คอนเทนต์ KOL ของ Cool แข็งด้าน awareness แล้ว ก้าวต่อไปคือผูก performance layer (promo code / landing / retargeting) เพื่อพิสูจน์ ROAS ไม่ใช่แค่ reach — นี่คือกุญแจที่จะเปลี่ยน KOL จาก cost center เป็น revenue driver ใน H2')}`
+      ${insight('info','💡 Content → Conversion Bridge',t('คอนเทนต์ KOL ของ Cool แข็งด้าน awareness แล้ว ก้าวต่อไปคือผูก performance layer (promo code / landing / retargeting) เพื่อพิสูจน์ ROAS ไม่ใช่แค่ reach — นี่คือกุญแจที่จะเปลี่ยน KOL จาก cost center เป็น revenue driver ใน H2','Cool\'s KOL content is already strong on awareness; the next step is to attach a performance layer (promo code / landing / retargeting) to prove ROAS, not just reach — the key to turning KOLs from a cost center into a revenue driver in H2'))}`
   });
 };
 
@@ -1069,32 +1085,32 @@ RENDER.npd = (pg)=>{
     short:'NPD Launch 2026', cls:'', color:'accent',
     tagline:'TCL New Product Launch 2026 — Event-led KOL · Join Event + Revive',
     takeaways:`
-      <div class="tk t-good"><h4>✅ Do Good — ที่ได้ผล</h4><ul>
-        <li><b>ทำเกินเป้าใหม่ทุก metric</b> (Impression 105% · View 104% · Engagement 104%) — โมเดล focused roster ได้ผล</li>
-        <li>ER เฉลี่ย ${PC(aN.er)} สูงกว่า Cool ชัดเจน — Event hook สร้าง novelty และ conversation</li>
-        <li>KOL สาย tech/review (arteereview, นิสา, meturr) สร้างทั้ง reach และ depth พร้อมกัน</li>
+      <div class="tk t-good"><h4>${t('✅ Do Good — ที่ได้ผล','✅ Do Good — What Worked')}</h4><ul>
+        <li>${t(`<b>ทำเกินเป้าใหม่ทุก metric</b> (Impression 105% · View 104% · Engagement 104%) — โมเดล focused roster ได้ผล`,`<b>Exceeded every revised target</b> (Impression 105% · View 104% · Engagement 104%) — the focused-roster model works`)}</li>
+        <li>${t(`ER เฉลี่ย ${PC(aN.er)} สูงกว่า Cool ชัดเจน — Event hook สร้าง novelty และ conversation`,`Average ER ${PC(aN.er)} clearly above Cool — the event hook created novelty and conversation`)}</li>
+        <li>${t(`KOL สาย tech/review (arteereview, นิสา, meturr) สร้างทั้ง reach และ depth พร้อมกัน`,`Tech/review KOLs (arteereview, Nisa, meturr) delivered both reach and depth at once`)}</li>
       </ul></div>
-      <div class="tk t-warn"><h4>⚠️ Do Better — ต้องปรับ</h4><ul>
-        <li>จำนวน KOL actual (13) น้อยกว่าแผนเก่า (20) — เลือกเข้มขึ้นช่วยคุณภาพ แต่จำกัด reach ceiling</li>
-        <li>ผลกระจุกที่ MAY เดือนเดียว ควรกระจาย cadence ให้ต่อเนื่องหลัง launch</li>
-        <li>บาง Mega (โปรฮับ) reach มหาศาลแต่ ER กลาง ๆ — เลือก content angle ให้คม</li>
+      <div class="tk t-warn"><h4>${t('⚠️ Do Better — ต้องปรับ','⚠️ Do Better — To Improve')}</h4><ul>
+        <li>${t(`จำนวน KOL actual (13) น้อยกว่าแผนเก่า (20) — เลือกเข้มขึ้นช่วยคุณภาพ แต่จำกัด reach ceiling`,`Actual KOL count (13) is below the original plan (20) — tighter selection helped quality but capped reach ceiling`)}</li>
+        <li>${t(`ผลกระจุกที่ MAY เดือนเดียว ควรกระจาย cadence ให้ต่อเนื่องหลัง launch`,`Results concentrated in MAY alone; spread cadence more steadily after launch`)}</li>
+        <li>${t(`บาง Mega (โปรฮับ) reach มหาศาลแต่ ER กลาง ๆ — เลือก content angle ให้คม`,`Some Mega (Prohub) had massive reach but mid ER — sharpen the content angle`)}</li>
       </ul></div>
-      <div class="tk t-next"><h4>🚀 Do Next — ต้องทดลอง H2</h4><ul>
-        <li>ทำ "launch playbook" จากแคมเปญนี้เป็น template สำหรับ NPD รุ่นถัดไป</li>
-        <li>เพิ่ม sustaining phase หลัง event (review รอบ 2 / UGC) เพื่อยืดอายุกระแส</li>
-        <li>จับคู่ KOL กับ retail/e-commerce push เพื่อแปลง buzz เป็นยอดขายช่วงเปิดตัว</li>
+      <div class="tk t-next"><h4>${t('🚀 Do Next — ต้องทดลอง H2','🚀 Do Next — Test in H2')}</h4><ul>
+        <li>${t(`ทำ "launch playbook" จากแคมเปญนี้เป็น template สำหรับ NPD รุ่นถัดไป`,`Build a "launch playbook" from this campaign as a template for the next NPD`)}</li>
+        <li>${t(`เพิ่ม sustaining phase หลัง event (review รอบ 2 / UGC) เพื่อยืดอายุกระแส`,`Add a sustaining phase after the event (round-2 reviews / UGC) to extend the buzz`)}</li>
+        <li>${t(`จับคู่ KOL กับ retail/e-commerce push เพื่อแปลง buzz เป็นยอดขายช่วงเปิดตัว`,`Pair KOLs with retail/e-commerce push to convert buzz into launch-period sales`)}</li>
       </ul></div>
       <div class="tk t-bad"><h4>📌 Risk & Watch</h4><ul>
-        <li>roster เล็กทำให้ผลพึ่งพา KOL ไม่กี่ราย — กระจายความเสี่ยงด้วย backup creators</li>
-        <li>Event-led ต้องมี momentum ต่อเนื่อง ไม่งั้นกระแสตกเร็วหลังจบงาน</li>
+        <li>${t(`roster เล็กทำให้ผลพึ่งพา KOL ไม่กี่ราย — กระจายความเสี่ยงด้วย backup creators`,`A small roster makes results depend on a few KOLs — diversify risk with backup creators`)}</li>
+        <li>${t(`Event-led ต้องมี momentum ต่อเนื่อง ไม่งั้นกระแสตกเร็วหลังจบงาน`,`Event-led needs continuous momentum, or the buzz fades fast after the event`)}</li>
       </ul></div>`,
     content:`
       <div class="g3" style="margin-bottom:6px">
-        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">🎯 Content ที่ Work</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">คอนเทนต์ "Join Event + Revive" สร้าง FOMO และ first-look ที่ ER สูง — การได้เห็นสินค้าใหม่ก่อนใครคือ engagement trigger ที่ทรงพลังที่สุด</p></div>
-        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">📈 ต่อยอด Paid Ads</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">บูสต์คอนเทนต์ launch ของ Mega/Macro ที่ ER เด่นเป็น awareness ads ช่วง 2 สัปดาห์แรกเพื่อขยาย first-impression ให้กว้างสุด</p></div>
-        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">🔁 Sustaining</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">ตาม Event ด้วย wave รีวิวเชิงลึก + UGC contest เพื่อรักษากระแสและสร้าง social proof ต่อเนื่องสู่ phase ขาย</p></div>
+        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">${t('🎯 Content ที่ Work','🎯 Content that Works')}</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">${t(`คอนเทนต์ "Join Event + Revive" สร้าง FOMO และ first-look ที่ ER สูง — การได้เห็นสินค้าใหม่ก่อนใครคือ engagement trigger ที่ทรงพลังที่สุด`,`"Join Event + Revive" content created FOMO and high-ER first-looks — seeing the new product first is the most powerful engagement trigger`)}</p></div>
+        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">${t('📈 ต่อยอด Paid Ads','📈 Scale with Paid Ads')}</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">${t(`บูสต์คอนเทนต์ launch ของ Mega/Macro ที่ ER เด่นเป็น awareness ads ช่วง 2 สัปดาห์แรกเพื่อขยาย first-impression ให้กว้างสุด`,`Boost launch content from high-ER Mega/Macro as awareness ads in the first 2 weeks to widen first-impression reach as far as possible`)}</p></div>
+        <div class="panel-lite"><h4 style="font-size:13px;font-weight:750;margin-bottom:8px">🔁 Sustaining</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">${t(`ตาม Event ด้วย wave รีวิวเชิงลึก + UGC contest เพื่อรักษากระแสและสร้าง social proof ต่อเนื่องสู่ phase ขาย`,`Follow the event with a wave of in-depth reviews + a UGC contest to sustain momentum and build ongoing social proof toward the sales phase`)}</p></div>
       </div>
-      ${insight('good','💡 Launch Excellence','NPD พิสูจน์ว่า "เลือก KOL คุณภาพ + event hook + cadence แน่น" = over-deliver. ทำให้เป็นมาตรฐานการเปิดตัวสินค้าใหม่ และเชื่อมเข้ากับ retail activation เพื่อปิด loop ตั้งแต่ awareness ถึง purchase')}`
+      ${insight('good','💡 Launch Excellence',t('NPD พิสูจน์ว่า "เลือก KOL คุณภาพ + event hook + cadence แน่น" = over-deliver. ทำให้เป็นมาตรฐานการเปิดตัวสินค้าใหม่ และเชื่อมเข้ากับ retail activation เพื่อปิด loop ตั้งแต่ awareness ถึง purchase','NPD proves that "quality KOL selection + event hook + tight cadence" = over-deliver. Make it the standard for new-product launches and connect it to retail activation to close the loop from awareness to purchase'))}`
   });
 };
 
